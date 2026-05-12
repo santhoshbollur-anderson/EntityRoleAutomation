@@ -1,5 +1,5 @@
 /**
- * @description       : 
+ * @description       : This class orchestrates the creation, update, and deactivation of Entity_Role__c records based on changes to Entities__c records and the configuration defined in Entity_Role_Mapping__mdt. It handles complex scenarios such as name changes, metadata updates, and ensures data integrity by deactivating old roles before creating new ones.
  * @author            :  Santhosh Bollur (Anderson SSC)
  * @group             : 
  * @last modified on  : 05-12-2026
@@ -11,7 +11,7 @@ public with sharing class EntityRoleOrchestrator {
     }
 
     // Resolved once per transaction for performance
-    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get('Standard')?.getRecordTypeId();
+    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get(EntityRoleConstants.RT_CONTACT_STANDARD)?.getRecordTypeId();
 
     public class EntityRequest {
         @InvocableVariable(label='Current Entity' required=true)
@@ -51,7 +51,7 @@ public with sharing class EntityRoleOrchestrator {
             for (Entity_Role__c er : [
                 SELECT Id, Entity__c, Role__c, Contact__r.Name, ShareHolder_Ownership__c, State_of_Residence__c
                 FROM Entity_Role__c
-                WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = 'Active'
+                WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
             ]) {
                 existingRolesMap.put(er.Entity__c + er.Role__c, er);
             }
@@ -114,7 +114,7 @@ public with sharing class EntityRoleOrchestrator {
                 createNewRolesSelective(requestsByEntityId.values(), allMappings, contactMap, rolesToReplaceByEntity);
             }
         } catch (Exception e) {
-            throw new EntityRoleException('Entity Role Automation Failed: ' + e.getMessage());
+            throw new EntityRoleException(EntityRoleConstants.ERROR_ENTITY_ROLE_AUTOMATION + e.getMessage());
         }
     }
 
@@ -131,7 +131,7 @@ public with sharing class EntityRoleOrchestrator {
 
                 String newVal = (String) req.currentRecord.get(m.Entity_Field_API__c);
                 if (String.isNotBlank(newVal) && contactMap.containsKey(newVal)) {
-                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = req.currentRecord.Id, Contact__c = contactMap.get(newVal), Role__c = m.Role_Name__c, Entity_Role_Status__c = 'Active');
+                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = req.currentRecord.Id, Contact__c = contactMap.get(newVal), Role__c = m.Role_Name__c, Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE);
                     if (String.isNotBlank(m.Ownership_Percentage_Field_API_Name__c)) {
                         newRole.ShareHolder_Ownership__c = (Decimal) req.currentRecord.get(m.Ownership_Percentage_Field_API_Name__c);
                     }
@@ -153,9 +153,9 @@ public with sharing class EntityRoleOrchestrator {
             for (Entity_Role__c er : [
                 SELECT Id
                 FROM Entity_Role__c
-                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = 'Active'
+                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
             ]) {
-                er.Entity_Role_Status__c = 'Inactive';
+                er.Entity_Role_Status__c = EntityRoleConstants.STATUS_INACTIVE;
                 toDeactivate.add(er);
             }
         }
