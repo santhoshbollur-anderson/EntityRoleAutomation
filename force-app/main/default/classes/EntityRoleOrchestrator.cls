@@ -57,11 +57,7 @@ public with sharing class EntityRoleOrchestrator {
             }
 
             Map<String, Entity_Role__c> existingRolesMap = new Map<String, Entity_Role__c>();
-            for (Entity_Role__c er : [
-                SELECT Id, Entity__c, Role__c, Contact__r.Name, ShareHolder_Ownership__c, State_of_Residence__c
-                FROM Entity_Role__c
-                WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = 'Active'
-            ]) {
+            for (Entity_Role__c er : getActiveEntityRoles(entityIds)) {
                 existingRolesMap.put(er.Entity__c + er.Role__c, er);
             }
 
@@ -278,6 +274,24 @@ public with sharing class EntityRoleOrchestrator {
             }
         }
         return contactMap;
+    }
+
+    /**
+     * @description Retrieves active Entity Role records for the given Entity IDs using the Entity_Role_Details field set.
+     *              Dynamically constructs the SOQL query based on fields defined in the field set metadata.
+     *              This ensures the query automatically adapts when fields are added or removed from the field set.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param entityIds Set of Entity IDs to query Entity Roles for
+     * @return List<Entity_Role__c> List of active Entity Role records matching the provided Entity IDs
+     **/
+    private static List<Entity_Role__c> getActiveEntityRoles(Set<Id> entityIds) {
+        List<String> fieldPaths = new List<String>();
+        for (Schema.FieldSetMember field : SObjectType.Entity_Role__c.FieldSets.Entity_Role_Details.getFields()) {
+            fieldPaths.add(field.getFieldPath());
+        }
+        String query = 'SELECT ' + String.join(fieldPaths, ', ') + 
+                       ' FROM Entity_Role__c WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = \'Active\'';
+        return Database.query(query);
     }
 
     /**
