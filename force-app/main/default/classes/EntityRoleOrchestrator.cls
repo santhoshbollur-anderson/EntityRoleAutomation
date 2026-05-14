@@ -1,5 +1,8 @@
 /**
- * @description       :
+ * @description       : Orchestrates the creation, update, and deactivation of Entity Role records based on
+ *                      Entity record changes. Handles contact lookup/creation, role mapping from custom metadata,
+ *                      and maintains data integrity for ownership percentages and state of residence fields.
+ *                      Invoked via Flow to automate Entity Role management.
  * @author            :  Santhosh Bollur (Anderson SSC)
  * @group             :
  * @last modified on  : 05-14-2026
@@ -19,6 +22,13 @@ public with sharing class EntityRoleOrchestrator {
         public Entities__c priorRecord;
     }
 
+    /**
+     * @description Main invocable method that processes Entity requests to create, update, or deactivate Entity Roles.
+     *              Compares current and prior Entity records to determine required changes, handles contact lookup/creation,
+     *              and maintains role data integrity including ownership percentages and state of residence.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param requests List of EntityRequest wrapper objects containing current and prior Entity records
+     **/
     @InvocableMethod(label='Execute Entity Role Logic' category='Entities')
     public static void processRoles(List<EntityRequest> requests) {
         if (requests == null || requests.isEmpty())
@@ -125,6 +135,16 @@ public with sharing class EntityRoleOrchestrator {
         }
     }
 
+    /**
+     * @description Creates new Entity Role records selectively based on the roles that need to be replaced.
+     *              Only processes mappings flagged for replacement and validates contact existence before insertion.
+     *              Populates role fields including ownership percentage and state of residence from Entity record.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param requests List of EntityRequest objects containing current Entity records
+     * @param mappings List of all Entity Role Mapping custom metadata records
+     * @param contactMap Map of contact names to Contact IDs for role assignment
+     * @param rolesToReplaceByEntity Map of Entity IDs to sets of role names that need to be created/replaced
+     **/
     private static void createNewRolesSelective(List<EntityRequest> requests, List<Entity_Role_Mapping__mdt> mappings, Map<String, Id> contactMap, Map<Id, Set<String>> rolesToReplaceByEntity) {
         List<Entity_Role__c> rolesToInsert = new List<Entity_Role__c>();
         for (EntityRequest req : requests) {
@@ -153,6 +173,13 @@ public with sharing class EntityRoleOrchestrator {
             insert rolesToInsert;
     }
 
+    /**
+     * @description Deactivates specific Entity Role records by setting their status to 'Inactive'.
+     *              Queries for active roles matching the Entity IDs and role names provided, then updates their status.
+     *              Used when a role holder changes or a name field is cleared on the Entity record.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param entityToRoles Map of Entity IDs to sets of role names that need to be deactivated
+     **/
     private static void deactivateSpecificRoles(Map<Id, Set<String>> entityToRoles) {
         List<Entity_Role__c> toDeactivate = new List<Entity_Role__c>();
         for (Id entityId : entityToRoles.keySet()) {
@@ -170,6 +197,16 @@ public with sharing class EntityRoleOrchestrator {
             update toDeactivate;
     }
 
+    /**
+     * @description Synchronizes Entity Role data when the same person remains in a role but metadata changes.
+     *              Updates ownership percentage and/or state of residence fields if values differ from current Entity record.
+     *              Returns true if any changes were made, indicating the role needs to be updated.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param er The existing Entity Role record to potentially update
+     * @param entity The current Entity record with new field values
+     * @param m The Entity Role Mapping metadata record defining which fields to sync
+     * @return Boolean True if any field was updated, false if no changes were needed
+     **/
     private static Boolean syncRoleData(Entity_Role__c er, Entities__c entity, Entity_Role_Mapping__mdt m) {
         Boolean changed = false;
         Decimal newPct = (m.Ownership_Percentage_Field_API_Name__c != null) ? (Decimal) entity.get(m.Ownership_Percentage_Field_API_Name__c) : null;
@@ -186,6 +223,16 @@ public with sharing class EntityRoleOrchestrator {
         return changed;
     }
 
+    /**
+     * @description Finds existing contacts or creates new ones for the provided names. First searches within specified accounts,
+     *              then searches globally, and finally creates new Contact records for any remaining names not found.
+     *              Ensures contacts are properly associated with accounts and have the Standard record type.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param names Set of contact names to find or create
+     * @param accountIds Set of Account IDs to search within for existing contacts
+     * @param nameToAccountIdMap Map linking names to their associated Account IDs for new contact creation
+     * @return Map<String, Id> Map of contact names to Contact record IDs
+     **/
     private static Map<String, Id> findOrCreateContactsScoped(Set<String> names, Set<Id> accountIds, Map<String, Id> nameToAccountIdMap) {
         Map<String, Id> contactMap = new Map<String, Id>();
         for (Contact con : [
@@ -233,6 +280,14 @@ public with sharing class EntityRoleOrchestrator {
         return contactMap;
     }
 
+    /**
+     * @description Parses a full name string into a Contact record with FirstName and LastName fields.
+     *              Handles single-word names (LastName only) and multi-word names (first word as FirstName, remaining as LastName).
+     *              Trims whitespace and splits on spaces to separate name components.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
+     * @param fullName The complete name string to parse (e.g., "John Smith" or "Smith")
+     * @return Contact A new Contact record with FirstName and LastName populated (not inserted)
+     **/
     private static Contact parseName(String fullName) {
         fullName = fullName.trim();
         List<String> parts = fullName.split(' ');

@@ -1,10 +1,12 @@
 /**
- * @description       : Constants class for Entity Role automation
+ * @description       : Central constants repository for Entity Role automation. Contains all string literals, 
+ *                      field API names, error messages, and DML error codes used throughout the Entity Role 
+ *                      automation process to ensure consistency and maintainability.
  * @author            : Santhosh Bollur (Anderson SSC)
- * @group             :
+ * @group             : 
  * @last modified on  : 05-14-2026
  * @last modified by  :  Santhosh Bollur (Anderson SSC)
- **/
+**/
 public with sharing class EntityRoleConstants {
     // Entity Role Status Values
     public static final String STATUS_ACTIVE = 'Active';

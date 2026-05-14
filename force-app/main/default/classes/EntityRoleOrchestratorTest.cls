@@ -1,8 +1,11 @@
 /**
- * @description       :
+ * @description       : Test class for EntityRoleOrchestrator. Validates entity role creation, contact matching, 
+ *                      contact creation, role deactivation on name changes, and proper handling of different 
+ *                      entity record types (LLC, Corporation, Limited Partnership). Tests cover various scenarios 
+ *                      including manager changes, new contact creation, and partner replacements.
  * @author            :  Santhosh Bollur (Anderson SSC)
  * @group             :
- * @last modified on  : 05-12-2026
+ * @last modified on  : 05-14-2026
  * @last modified by  :  Santhosh Bollur (Anderson SSC)
  **/
 @IsTest
