@@ -1,12 +1,13 @@
 /**
  * @description       : Orchestrates the creation, update, and deactivation of Entity Role records based on
- * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records 
+ * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records
  * by reactivating historical records instead of inserting new ones.
  * @author            : Santhosh Bollur (Anderson SSC)
  * @last modified on  : 05-14-2026
  **/
 public with sharing class EntityRoleOrchestrator {
-    public class EntityRoleException extends Exception {}
+    public class EntityRoleException extends Exception {
+    }
 
     public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get('Standard')?.getRecordTypeId();
 
@@ -63,7 +64,7 @@ public with sharing class EntityRoleOrchestrator {
             List<Entity_Role__c> rolesToUpdate = new List<Entity_Role__c>();
             Map<Id, Set<String>> rolesToReplaceByEntity = new Map<Id, Set<String>>();
             Map<Id, EntityRequest> requestsByEntityId = new Map<Id, EntityRequest>();
-            
+
             // TRACKING: Records we've reactivated in this transaction to prevent them from being deactivated
             Set<Id> reactivatedRecordIds = new Set<Id>();
 
@@ -88,7 +89,6 @@ public with sharing class EntityRoleOrchestrator {
 
                     // CASE 1: Occupant Changed or New Role
                     if (existingRole == null || existingRole.Contact__r.Name != currentNameVal) {
-                        
                         if (historicalRole != null) {
                             // REACTIVATE: Historical person returning to the same role
                             historicalRole.Entity_Role_Status__c = 'Active';
@@ -149,25 +149,23 @@ public with sharing class EntityRoleOrchestrator {
         List<Entity_Role__c> rolesToInsert = new List<Entity_Role__c>();
         for (EntityRequest req : requests) {
             Set<String> rolesNeeded = rolesToReplaceByEntity.get(req.currentRecord.Id);
-            if (rolesNeeded == null) continue;
+            if (rolesNeeded == null)
+                continue;
 
             for (Entity_Role_Mapping__mdt m : mappings) {
-                if (!rolesNeeded.contains(m.Role_Name__c)) continue;
+                if (!rolesNeeded.contains(m.Role_Name__c))
+                    continue;
 
                 String newVal = (String) req.currentRecord.get(m.Entity_Field_API__c);
                 if (String.isNotBlank(newVal) && contactMap.containsKey(newVal)) {
-                    Entity_Role__c newRole = new Entity_Role__c(
-                        Entity__c = req.currentRecord.Id, 
-                        Contact__c = contactMap.get(newVal), 
-                        Role__c = m.Role_Name__c, 
-                        Entity_Role_Status__c = 'Active'
-                    );
+                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = req.currentRecord.Id, Contact__c = contactMap.get(newVal), Role__c = m.Role_Name__c, Entity_Role_Status__c = 'Active');
                     syncRoleData(newRole, req.currentRecord, m);
                     rolesToInsert.add(newRole);
                 }
             }
         }
-        if (!rolesToInsert.isEmpty()) insert rolesToInsert;
+        if (!rolesToInsert.isEmpty())
+            insert rolesToInsert;
     }
 
     private static void deactivateSpecificRoles(Map<Id, Set<String>> entityToRoles, Set<Id> skipIds) {
@@ -175,8 +173,8 @@ public with sharing class EntityRoleOrchestrator {
         for (Id entityId : entityToRoles.keySet()) {
             Set<String> roles = entityToRoles.get(entityId);
             for (Entity_Role__c er : [
-                SELECT Id 
-                FROM Entity_Role__c 
+                SELECT Id
+                FROM Entity_Role__c
                 WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = 'Active'
             ]) {
                 // Safeguard: Do not deactivate if we just reactivated this specific record
@@ -186,7 +184,8 @@ public with sharing class EntityRoleOrchestrator {
                 }
             }
         }
-        if (!toDeactivate.isEmpty()) update toDeactivate;
+        if (!toDeactivate.isEmpty())
+            update toDeactivate;
     }
 
     private static Boolean syncRoleData(Entity_Role__c er, Entities__c entity, Entity_Role_Mapping__mdt m) {
@@ -221,7 +220,8 @@ public with sharing class EntityRoleOrchestrator {
         if (!remainingNames.isEmpty()) {
             List<Contact> newContacts = new List<Contact>();
             for (String fullName : remainingNames) {
-                if (String.isBlank(fullName)) continue;
+                if (String.isBlank(fullName))
+                    continue;
                 Contact c = parseName(fullName);
                 c.AccountId = nameToAccountIdMap.get(fullName);
                 c.RecordTypeId = CONTACT_STANDARD_RT_ID;
@@ -249,7 +249,8 @@ public with sharing class EntityRoleOrchestrator {
     private static Contact parseName(String fullName) {
         fullName = fullName.trim();
         List<String> parts = fullName.split(' ');
-        if (parts.size() == 1) return new Contact(LastName = parts[0]);
+        if (parts.size() == 1)
+            return new Contact(LastName = parts[0]);
         String firstName = parts[0];
         parts.remove(0);
         return new Contact(FirstName = firstName, LastName = String.join(parts, ' '));
