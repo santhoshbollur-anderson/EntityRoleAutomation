@@ -1,15 +1,15 @@
 /**
- * @description       : 
+ * @description       :
  * @author            :  Santhosh Bollur (Anderson SSC)
- * @group             : 
- * @last modified on  : 05-12-2026
+ * @group             :
+ * @last modified on  : 05-14-2026
  * @last modified by  :  Santhosh Bollur (Anderson SSC)
-**/
+ **/
 
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
     }
-    
+
     public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get('Standard')?.getRecordTypeId();
 
     public class EntityRequest {
@@ -112,22 +112,17 @@ public with sharing class EntityRoleOrchestrator {
                 // Creates roles ONLY for the flagged mappings where a name exists
                 createNewRolesSelective(requestsByEntityId.values(), allMappings, contactMap, rolesToReplaceByEntity);
             }
-        }  catch (Exception e) {
-    String errorMessage = e.getMessage();
-    
-    // Check for Picklist Validation errors
-    if (errorMessage.contains('INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST')) {
-        // Extract the value and field name for a friendlier message
-        errorMessage = 'One of the State values entered is not valid for the "State of Residence" picklist. Please ensure you are using standard State abbreviations or names defined in Salesforce.';
-    } 
-    // Check for Required Field errors
-    else if (errorMessage.contains('REQUIRED_FIELD_MISSING')) {
-        errorMessage = 'A required field is missing. Please check that all Name and Role fields are populated.';
-    }
-    
-    // Throw the cleaned-up message
-    throw new EntityRoleException('Entity Role Automation Failed: ' + errorMessage);
-}
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains(EntityRoleConstants.DML_ERROR_INVALID_PICKLIST)) {
+                errorMessage = EntityRoleConstants.ERROR_INVALID_PICKLIST;
+            } else if (errorMessage.contains(EntityRoleConstants.DML_ERROR_REQUIRED_FIELD)) {
+                errorMessage = EntityRoleConstants.ERROR_REQUIRED_FIELD;
+            }
+
+            // Throw the cleaned-up message
+            throw new EntityRoleException(EntityRoleConstants.ERROR_ENTITY_ROLE_AUTOMATION + errorMessage);
+        }
     }
 
     private static void createNewRolesSelective(List<EntityRequest> requests, List<Entity_Role_Mapping__mdt> mappings, Map<String, Id> contactMap, Map<Id, Set<String>> rolesToReplaceByEntity) {
