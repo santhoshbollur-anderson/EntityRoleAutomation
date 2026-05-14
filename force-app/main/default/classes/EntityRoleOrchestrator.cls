@@ -65,7 +65,7 @@ public with sharing class EntityRoleOrchestrator {
                 // PERFORMANCE OPTIMIZATION: Cache entity ID to avoid repeated field access
                 Id entityId = req.currentRecord.Id;
                 entityIds.add(entityId);
-                
+
                 Id primaryClientId = req.currentRecord.Primary_Client__c;
                 if (primaryClientId != null) {
                     accountIds.add(primaryClientId);
@@ -88,7 +88,7 @@ public with sharing class EntityRoleOrchestrator {
                 String erRole = er.Role__c;
                 String erStatus = er.Entity_Role_Status__c;
                 String erContactName = er.Contact__r.Name;
-                
+
                 // PERFORMANCE OPTIMIZATION: Use String.join for efficient key generation
                 if (erStatus == EntityRoleConstants.STATUS_ACTIVE) {
                     String activeKey = String.valueOf(erEntityId) + erRole;
@@ -112,13 +112,13 @@ public with sharing class EntityRoleOrchestrator {
                 // PERFORMANCE OPTIMIZATION: Cache entity ID and record outside inner loop
                 Id entityId = req.currentRecord.Id;
                 Entities__c currentRecord = req.currentRecord;
-                
+
                 for (Entity_Role_Mapping__mdt m : allMappings) {
                     // PERFORMANCE OPTIMIZATION: Cache field values to avoid repeated field access
                     String entityFieldAPI = m.Entity_Field_API__c;
                     String roleName = m.Role_Name__c;
                     String currentNameVal = (String) currentRecord.get(entityFieldAPI);
-                    
+
                     // PERFORMANCE OPTIMIZATION: Efficient deduplication key generation
                     String activeRoleKey = String.valueOf(entityId) + roleName;
                     Entity_Role__c existingRole = activeRolesMap.get(activeRoleKey);
@@ -138,7 +138,7 @@ public with sharing class EntityRoleOrchestrator {
                     // PERFORMANCE OPTIMIZATION: Cache field API names to avoid repeated access
                     String ownershipFieldAPI = m.Ownership_Percentage_Field_API_Name__c;
                     String stateFieldAPI = m.State_of_Residence_Field_API__c;
-                    
+
                     Decimal currentPct = (ownershipFieldAPI != null) ? (Decimal) currentRecord.get(ownershipFieldAPI) : null;
                     String currentState = (stateFieldAPI != null) ? (String) currentRecord.get(stateFieldAPI) : null;
 
@@ -203,13 +203,13 @@ public with sharing class EntityRoleOrchestrator {
     private static void createNewRolesSelective(List<EntityRequest> requests, List<Entity_Role_Mapping__mdt> mappings, Map<String, Id> contactMap, Map<Id, Set<String>> rolesToReplaceByEntity) {
         // PERFORMANCE OPTIMIZATION: Initialize list for efficient insertions
         List<Entity_Role__c> rolesToInsert = new List<Entity_Role__c>();
-        
+
         for (EntityRequest req : requests) {
             // PERFORMANCE OPTIMIZATION: Cache entity ID and current record
             Id entityId = req.currentRecord.Id;
             Entities__c currentRecord = req.currentRecord;
             Set<String> rolesNeeded = rolesToReplaceByEntity.get(entityId);
-            
+
             if (rolesNeeded == null)
                 continue;
 
@@ -220,12 +220,7 @@ public with sharing class EntityRoleOrchestrator {
 
                 String newVal = (String) currentRecord.get(m.Entity_Field_API__c);
                 if (String.isNotBlank(newVal) && contactMap.containsKey(newVal)) {
-                    Entity_Role__c newRole = new Entity_Role__c(
-                        Entity__c = entityId, 
-                        Contact__c = contactMap.get(newVal), 
-                        Role__c = roleName, 
-                        Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE
-                    );
+                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = entityId, Contact__c = contactMap.get(newVal), Role__c = roleName, Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE);
                     syncRoleData(newRole, currentRecord, m);
                     rolesToInsert.add(newRole);
                 }
@@ -238,7 +233,7 @@ public with sharing class EntityRoleOrchestrator {
     private static void deactivateSpecificRoles(Map<Id, Set<String>> entityToRoles, Set<Id> skipIds) {
         // PERFORMANCE OPTIMIZATION: Initialize list for efficient updates
         List<Entity_Role__c> toDeactivate = new List<Entity_Role__c>();
-        
+
         for (Id entityId : entityToRoles.keySet()) {
             Set<String> roles = entityToRoles.get(entityId);
             for (Entity_Role__c er : [
@@ -276,49 +271,50 @@ public with sharing class EntityRoleOrchestrator {
     private static Map<String, Id> findOrCreateContactsScoped(Set<String> names, Set<Id> accountIds, Map<String, Id> nameToAccountIdMap) {
         // PERFORMANCE OPTIMIZATION: Initialize map for efficient lookups
         Map<String, Id> contactMap = new Map<String, Id>();
-        
+
         for (Contact con : [SELECT Id, Name FROM Contact WHERE Name IN :names AND AccountId IN :accountIds WITH SECURITY_ENFORCED]) {
             contactMap.put(con.Name, con.Id);
         }
-        
+
         Set<String> remainingNames = new Set<String>(names);
         remainingNames.removeAll(contactMap.keySet());
-        
+
         // PERFORMANCE OPTIMIZATION: Early exit if all contacts found
         if (remainingNames.isEmpty()) {
             return contactMap;
         }
-        
+
         for (Contact con : [SELECT Id, Name FROM Contact WHERE Name IN :remainingNames WITH SECURITY_ENFORCED]) {
             contactMap.put(con.Name, con.Id);
         }
-        
+
         remainingNames.removeAll(contactMap.keySet());
-        
+
         // PERFORMANCE OPTIMIZATION: Early exit if all contacts found
         if (remainingNames.isEmpty()) {
             return contactMap;
         }
-        
+
         // PERFORMANCE OPTIMIZATION: Initialize list for new contacts
         List<Contact> newContacts = new List<Contact>();
-        
+
         for (String fullName : remainingNames) {
             if (String.isBlank(fullName))
                 continue;
             Contact c = parseName(fullName);
             c.AccountId = nameToAccountIdMap.get(fullName);
             c.RecordTypeId = CONTACT_STANDARD_RT_ID;
+            c.Inactive_Client__c = false;
             newContacts.add(c);
         }
-        
+
         if (!newContacts.isEmpty()) {
             insert newContacts;
             for (Contact con : [SELECT Id, Name FROM Contact WHERE Id IN :newContacts]) {
                 contactMap.put(con.Name, con.Id);
             }
         }
-        
+
         return contactMap;
     }
 
