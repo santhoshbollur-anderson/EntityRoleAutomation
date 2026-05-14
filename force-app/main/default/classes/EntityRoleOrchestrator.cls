@@ -1,8 +1,8 @@
 /**
  * @description       : Orchestrates the creation, update, and deactivation of Entity Role records based on
- *                      Entity record changes. Handles contact lookup/creation, role mapping from custom metadata,
- *                      and maintains data integrity for ownership percentages and state of residence fields.
- *                      Invoked via Flow to automate Entity Role management.
+ * Entity record changes. Handles contact lookup/creation, role mapping from custom metadata,
+ * and maintains data integrity for ownership percentages and state of residence fields.
+ * Invoked via Flow to automate Entity Role management.
  * @author            :  Santhosh Bollur (Anderson SSC)
  * @group             :
  * @last modified on  : 05-14-2026
@@ -24,8 +24,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Main invocable method that processes Entity requests to create, update, or deactivate Entity Roles.
-     *              Compares current and prior Entity records to determine required changes, handles contact lookup/creation,
-     *              and maintains role data integrity including ownership percentages and state of residence.
+     * Compares current and prior Entity records to determine required changes, handles contact lookup/creation,
+     * and maintains role data integrity including ownership percentages and state of residence.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param requests List of EntityRequest wrapper objects containing current and prior Entity records
      **/
@@ -56,9 +56,16 @@ public with sharing class EntityRoleOrchestrator {
                 }
             }
 
-            Map<String, Entity_Role__c> existingRolesMap = new Map<String, Entity_Role__c>();
-            for (Entity_Role__c er : getActiveEntityRoles(entityIds)) {
-                existingRolesMap.put(er.Entity__c + er.Role__c, er);
+            Map<String, Entity_Role__c> activeRolesMap = new Map<String, Entity_Role__c>();
+            Map<String, Entity_Role__c> historicalRolesMap = new Map<String, Entity_Role__c>();
+
+            // Query both Active and Inactive roles to support back-and-forth reactivation
+            for (Entity_Role__c er : getEntityRolesInternal(entityIds)) {
+                if (er.Entity_Role_Status__c == 'Active') {
+                    activeRolesMap.put(er.Entity__c + er.Role__c, er);
+                }
+                // Key for historical matching: Entity + Role + Contact Name
+                historicalRolesMap.put(er.Entity__c + er.Role__c + er.Contact__r.Name, er);
             }
 
             Set<String> namesToProcess = new Set<String>();
@@ -72,7 +79,7 @@ public with sharing class EntityRoleOrchestrator {
             for (EntityRequest req : requests) {
                 for (Entity_Role_Mapping__mdt m : allMappings) {
                     String currentNameVal = (String) req.currentRecord.get(m.Entity_Field_API__c);
-                    Entity_Role__c existingRole = existingRolesMap.get(req.currentRecord.Id + m.Role_Name__c);
+                    Entity_Role__c existingRole = activeRolesMap.get(req.currentRecord.Id + m.Role_Name__c);
 
                     // HANDLE BLANK FIELDS: If name is cleared, deactivate the existing role
                     if (String.isBlank(currentNameVal)) {
@@ -85,18 +92,37 @@ public with sharing class EntityRoleOrchestrator {
                         continue;
                     }
 
+                    // Check for historical record for reactivation (Back-and-forth scenario)
+                    Entity_Role__c historicalRole = historicalRolesMap.get(req.currentRecord.Id + m.Role_Name__c + currentNameVal);
+
                     Decimal currentPct = (m.Ownership_Percentage_Field_API_Name__c != null) ? (Decimal) req.currentRecord.get(m.Ownership_Percentage_Field_API_Name__c) : null;
                     String currentState = (m.State_of_Residence_Field_API__c != null) ? (String) req.currentRecord.get(m.State_of_Residence_Field_API__c) : null;
 
                     // CASE 1: New Role or Name Change
                     if (existingRole == null || existingRole.Contact__r.Name != currentNameVal) {
-                        namesToProcess.add(currentNameVal);
-                        requestsByEntityId.put(req.currentRecord.Id, req);
+                        // If we found a historical record for this person in this role, reactivate it
+                        if (historicalRole != null) {
+                            historicalRole.Entity_Role_Status__c = 'Active';
+                            syncRoleData(historicalRole, req.currentRecord, m);
+                            rolesToUpdate.add(historicalRole);
 
-                        if (!rolesToReplaceByEntity.containsKey(req.currentRecord.Id)) {
-                            rolesToReplaceByEntity.put(req.currentRecord.Id, new Set<String>());
+                            // Deactivate current active occupant if different
+                            if (existingRole != null) {
+                                if (!rolesToReplaceByEntity.containsKey(req.currentRecord.Id)) {
+                                    rolesToReplaceByEntity.put(req.currentRecord.Id, new Set<String>());
+                                }
+                                rolesToReplaceByEntity.get(req.currentRecord.Id).add(m.Role_Name__c);
+                            }
+                        } else {
+                            // Truly new role/person
+                            namesToProcess.add(currentNameVal);
+                            requestsByEntityId.put(req.currentRecord.Id, req);
+
+                            if (!rolesToReplaceByEntity.containsKey(req.currentRecord.Id)) {
+                                rolesToReplaceByEntity.put(req.currentRecord.Id, new Set<String>());
+                            }
+                            rolesToReplaceByEntity.get(req.currentRecord.Id).add(m.Role_Name__c);
                         }
-                        rolesToReplaceByEntity.get(req.currentRecord.Id).add(m.Role_Name__c);
                     }
                     // CASE 2: Same Person, Metadata Change
                     else if (existingRole.ShareHolder_Ownership__c != currentPct || existingRole.State_of_Residence__c != currentState) {
@@ -133,8 +159,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Creates new Entity Role records selectively based on the roles that need to be replaced.
-     *              Only processes mappings flagged for replacement and validates contact existence before insertion.
-     *              Populates role fields including ownership percentage and state of residence from Entity record.
+     * Only processes mappings flagged for replacement and validates contact existence before insertion.
+     * Populates role fields including ownership percentage and state of residence from Entity record.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param requests List of EntityRequest objects containing current Entity records
      * @param mappings List of all Entity Role Mapping custom metadata records
@@ -171,8 +197,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Deactivates specific Entity Role records by setting their status to 'Inactive'.
-     *              Queries for active roles matching the Entity IDs and role names provided, then updates their status.
-     *              Used when a role holder changes or a name field is cleared on the Entity record.
+     * Queries for active roles matching the Entity IDs and role names provided, then updates their status.
+     * Used when a role holder changes or a name field is cleared on the Entity record.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param entityToRoles Map of Entity IDs to sets of role names that need to be deactivated
      **/
@@ -195,8 +221,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Synchronizes Entity Role data when the same person remains in a role but metadata changes.
-     *              Updates ownership percentage and/or state of residence fields if values differ from current Entity record.
-     *              Returns true if any changes were made, indicating the role needs to be updated.
+     * Updates ownership percentage and/or state of residence fields if values differ from current Entity record.
+     * Returns true if any changes were made, indicating the role needs to be updated.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param er The existing Entity Role record to potentially update
      * @param entity The current Entity record with new field values
@@ -221,8 +247,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Finds existing contacts or creates new ones for the provided names. First searches within specified accounts,
-     *              then searches globally, and finally creates new Contact records for any remaining names not found.
-     *              Ensures contacts are properly associated with accounts and have the Standard record type.
+     * then searches globally, and finally creates new Contact records for any remaining names not found.
+     * Ensures contacts are properly associated with accounts and have the Standard record type.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param names Set of contact names to find or create
      * @param accountIds Set of Account IDs to search within for existing contacts
@@ -277,27 +303,28 @@ public with sharing class EntityRoleOrchestrator {
     }
 
     /**
-     * @description Retrieves active Entity Role records for the given Entity IDs using the Entity_Role_Details field set.
-     *              Dynamically constructs the SOQL query based on fields defined in the field set metadata.
-     *              This ensures the query automatically adapts when fields are added or removed from the field set.
+     * @description Retrieves Entity Role records for the given Entity IDs using the Entity_Role_Details field set.
+     * Constructed to retrieve both Active and Inactive roles to support reactivation logic.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param entityIds Set of Entity IDs to query Entity Roles for
-     * @return List<Entity_Role__c> List of active Entity Role records matching the provided Entity IDs
+     * @return List<Entity_Role__c> List of Entity Role records matching the provided Entity IDs
      **/
-    private static List<Entity_Role__c> getActiveEntityRoles(Set<Id> entityIds) {
+    private static List<Entity_Role__c> getEntityRolesInternal(Set<Id> entityIds) {
         List<String> fieldPaths = new List<String>();
+        Set<String> fieldsToQuery = new Set<String>{ 'Entity__c', 'Role__c', 'Contact__r.Name', 'Entity_Role_Status__c' };
+
         for (Schema.FieldSetMember field : SObjectType.Entity_Role__c.FieldSets.Entity_Role_Details.getFields()) {
-            fieldPaths.add(field.getFieldPath());
+            fieldsToQuery.add(field.getFieldPath());
         }
-        String query = 'SELECT ' + String.join(fieldPaths, ', ') + 
-                       ' FROM Entity_Role__c WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = \'Active\'';
+
+        String query = 'SELECT ' + String.join(new List<String>(fieldsToQuery), ', ') + ' FROM Entity_Role__c WHERE Entity__c IN :entityIds';
         return Database.query(query);
     }
 
     /**
      * @description Parses a full name string into a Contact record with FirstName and LastName fields.
-     *              Handles single-word names (LastName only) and multi-word names (first word as FirstName, remaining as LastName).
-     *              Trims whitespace and splits on spaces to separate name components.
+     * Handles single-word names (LastName only) and multi-word names (first word as FirstName, remaining as LastName).
+     * Trims whitespace and splits on spaces to separate name components.
      * @author  Santhosh Bollur (Anderson SSC) | 05-14-2026
      * @param fullName The complete name string to parse (e.g., "John Smith" or "Smith")
      * @return Contact A new Contact record with FirstName and LastName populated (not inserted)
