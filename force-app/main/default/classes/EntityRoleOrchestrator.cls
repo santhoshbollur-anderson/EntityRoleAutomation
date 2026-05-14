@@ -1,5 +1,5 @@
 /**
- * @description       : This class orchestrates the creation, update, and deactivation of Entity_Role__c records based on changes to Entities__c records and the configuration defined in Entity_Role_Mapping__mdt. It handles complex scenarios such as name changes, metadata updates, and ensures data integrity by deactivating old roles before creating new ones.
+ * @description       : 
  * @author            :  Santhosh Bollur (Anderson SSC)
  * @group             : 
  * @last modified on  : 05-12-2026
@@ -9,9 +9,8 @@
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
     }
-
-    // Resolved once per transaction for performance
-    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get(EntityRoleConstants.RT_CONTACT_STANDARD)?.getRecordTypeId();
+    
+    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get('Standard')?.getRecordTypeId();
 
     public class EntityRequest {
         @InvocableVariable(label='Current Entity' required=true)
@@ -51,7 +50,7 @@ public with sharing class EntityRoleOrchestrator {
             for (Entity_Role__c er : [
                 SELECT Id, Entity__c, Role__c, Contact__r.Name, ShareHolder_Ownership__c, State_of_Residence__c
                 FROM Entity_Role__c
-                WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
+                WHERE Entity__c IN :entityIds AND Entity_Role_Status__c = 'Active'
             ]) {
                 existingRolesMap.put(er.Entity__c + er.Role__c, er);
             }
@@ -113,9 +112,22 @@ public with sharing class EntityRoleOrchestrator {
                 // Creates roles ONLY for the flagged mappings where a name exists
                 createNewRolesSelective(requestsByEntityId.values(), allMappings, contactMap, rolesToReplaceByEntity);
             }
-        } catch (Exception e) {
-            throw new EntityRoleException(EntityRoleConstants.ERROR_ENTITY_ROLE_AUTOMATION + e.getMessage());
-        }
+        }  catch (Exception e) {
+    String errorMessage = e.getMessage();
+    
+    // Check for Picklist Validation errors
+    if (errorMessage.contains('INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST')) {
+        // Extract the value and field name for a friendlier message
+        errorMessage = 'One of the State values entered is not valid for the "State of Residence" picklist. Please ensure you are using standard State abbreviations or names defined in Salesforce.';
+    } 
+    // Check for Required Field errors
+    else if (errorMessage.contains('REQUIRED_FIELD_MISSING')) {
+        errorMessage = 'A required field is missing. Please check that all Name and Role fields are populated.';
+    }
+    
+    // Throw the cleaned-up message
+    throw new EntityRoleException('Entity Role Automation Failed: ' + errorMessage);
+}
     }
 
     private static void createNewRolesSelective(List<EntityRequest> requests, List<Entity_Role_Mapping__mdt> mappings, Map<String, Id> contactMap, Map<Id, Set<String>> rolesToReplaceByEntity) {
@@ -131,7 +143,7 @@ public with sharing class EntityRoleOrchestrator {
 
                 String newVal = (String) req.currentRecord.get(m.Entity_Field_API__c);
                 if (String.isNotBlank(newVal) && contactMap.containsKey(newVal)) {
-                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = req.currentRecord.Id, Contact__c = contactMap.get(newVal), Role__c = m.Role_Name__c, Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE);
+                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = req.currentRecord.Id, Contact__c = contactMap.get(newVal), Role__c = m.Role_Name__c, Entity_Role_Status__c = 'Active');
                     if (String.isNotBlank(m.Ownership_Percentage_Field_API_Name__c)) {
                         newRole.ShareHolder_Ownership__c = (Decimal) req.currentRecord.get(m.Ownership_Percentage_Field_API_Name__c);
                     }
@@ -153,9 +165,9 @@ public with sharing class EntityRoleOrchestrator {
             for (Entity_Role__c er : [
                 SELECT Id
                 FROM Entity_Role__c
-                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
+                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = 'Active'
             ]) {
-                er.Entity_Role_Status__c = EntityRoleConstants.STATUS_INACTIVE;
+                er.Entity_Role_Status__c = 'Inactive';
                 toDeactivate.add(er);
             }
         }

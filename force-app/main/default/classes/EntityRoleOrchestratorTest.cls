@@ -16,7 +16,7 @@ private class EntityRoleOrchestratorTest {
 
     @IsTest
     static void testLLCManagerChange() {
-        Id llcRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get(EntityRoleConstants.RT_LLC)?.getRecordTypeId();
+        Id llcRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Limited_Liability_Company_LLC')?.getRecordTypeId();
         Id testAccountId = createTestAccount();
         
         // Update the existing contact to belong to the same account
@@ -47,14 +47,14 @@ private class EntityRoleOrchestratorTest {
         List<Entity_Role__c> roles = [
             SELECT Id
             FROM Entity_Role__c
-            WHERE Entity__c = :testEntity.Id AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
+            WHERE Entity__c = :testEntity.Id AND Entity_Role_Status__c = 'Active'
         ];
         System.assert(roles.size() > 0, 'An active Entity Role should have been created');
     }
 
     @IsTest
     static void testNewContactCreation() {
-        Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get(EntityRoleConstants.RT_CORPORATION)?.getRecordTypeId();
+        Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
 
         Entities__c testEntity = new Entities__c(
             Name = 'Test Corp', 
@@ -82,7 +82,7 @@ private class EntityRoleOrchestratorTest {
 
     @IsTest
     static void testLPPartnerChange() {
-        Id lpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get(EntityRoleConstants.RT_LIMITED_PARTNERSHIP)?.getRecordTypeId();
+        Id lpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Limited_Partnership_LP')?.getRecordTypeId();
         Id testAccountId = createTestAccount();
 
         Entities__c testEntity = new Entities__c(
@@ -100,7 +100,7 @@ private class EntityRoleOrchestratorTest {
             Entity__c = testEntity.Id, 
             Contact__c = conA.Id, 
             Role__c = 'Manager 1',
-            Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE
+            Entity_Role_Status__c = 'Active'
         );
 
         Entities__c updatedEntity = testEntity.clone(true, true, true, true);
@@ -120,7 +120,7 @@ private class EntityRoleOrchestratorTest {
             WHERE Contact__c = :conA.Id
         ];
         System.assertEquals(1, oldRoles.size(), 'The old role record should exist');
-        System.assertEquals(EntityRoleConstants.STATUS_INACTIVE, oldRoles[0].Entity_Role_Status__c, 'Old role should be deactivated');
+        System.assertEquals('Inactive', oldRoles[0].Entity_Role_Status__c, 'Old role should be deactivated');
     }
     
     // Helper method to create test account
