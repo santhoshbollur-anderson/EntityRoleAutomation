@@ -3,13 +3,13 @@
  * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records
  * by reactivating historical records instead of inserting new ones.
  * @author            : Santhosh Bollur (Anderson SSC)
- * @last modified on  : 05-14-2026
+ * @last modified on  : 05-15-2026
  **/
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
     }
 
-    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get(AppConstants.RT_CONTACT_STANDARD)?.getRecordTypeId();
+                        public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get(AppConstants.RT_CONTACT_STANDARD)?.getRecordTypeId();
 
     // PERFORMANCE OPTIMIZATION: Static cache for Custom Metadata to avoid repeated SOQL queries
     private static Map<String, Entity_Role_Mapping__mdt> cachedMappings;
