@@ -9,7 +9,7 @@ public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
     }
 
-    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get('Standard')?.getRecordTypeId();
+    public static final Id CONTACT_STANDARD_RT_ID = Schema.SObjectType.Contact.getRecordTypeInfosByDeveloperName().get(AppConstants.RT_CONTACT_STANDARD)?.getRecordTypeId();
 
     // PERFORMANCE OPTIMIZATION: Static cache for Custom Metadata to avoid repeated SOQL queries
     private static Map<String, Entity_Role_Mapping__mdt> cachedMappings;
@@ -90,7 +90,7 @@ public with sharing class EntityRoleOrchestrator {
                 String erContactName = er.Contact__r.Name;
 
                 // PERFORMANCE OPTIMIZATION: Use String.join for efficient key generation
-                if (erStatus == EntityRoleConstants.STATUS_ACTIVE) {
+                if (erStatus == AppConstants.STATUS_ACTIVE) {
                     String activeKey = String.valueOf(erEntityId) + erRole;
                     activeRolesMap.put(activeKey, er);
                 }
@@ -146,7 +146,7 @@ public with sharing class EntityRoleOrchestrator {
                     if (existingRole == null || existingRole.Contact__r.Name != currentNameVal) {
                         if (historicalRole != null) {
                             // REACTIVATE: Historical person returning to the same role
-                            historicalRole.Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE;
+                            historicalRole.Entity_Role_Status__c = AppConstants.STATUS_ACTIVE;
                             syncRoleData(historicalRole, currentRecord, m);
                             rolesToUpdate.add(historicalRole);
                             reactivatedRecordIds.add(historicalRole.Id);
@@ -184,12 +184,12 @@ public with sharing class EntityRoleOrchestrator {
             }
         } catch (Exception e) {
             String errorMessage = e.getMessage();
-            if (errorMessage.contains(EntityRoleConstants.DML_ERROR_INVALID_PICKLIST)) {
-                errorMessage = EntityRoleConstants.ERROR_INVALID_PICKLIST;
-            } else if (errorMessage.contains(EntityRoleConstants.DML_ERROR_REQUIRED_FIELD)) {
-                errorMessage = EntityRoleConstants.ERROR_REQUIRED_FIELD;
+            if (errorMessage.contains(AppConstants.DML_ERROR_INVALID_PICKLIST)) {
+                errorMessage = AppConstants.ERROR_INVALID_PICKLIST;
+            } else if (errorMessage.contains(AppConstants.DML_ERROR_REQUIRED_FIELD)) {
+                errorMessage = AppConstants.ERROR_REQUIRED_FIELD;
             }
-            throw new EntityRoleException(EntityRoleConstants.ERROR_ENTITY_ROLE_AUTOMATION + errorMessage);
+            throw new EntityRoleException(AppConstants.ERROR_ENTITY_ROLE_AUTOMATION + errorMessage);
         }
     }
 
@@ -220,7 +220,7 @@ public with sharing class EntityRoleOrchestrator {
 
                 String newVal = (String) currentRecord.get(m.Entity_Field_API__c);
                 if (String.isNotBlank(newVal) && contactMap.containsKey(newVal)) {
-                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = entityId, Contact__c = contactMap.get(newVal), Role__c = roleName, Entity_Role_Status__c = EntityRoleConstants.STATUS_ACTIVE);
+                    Entity_Role__c newRole = new Entity_Role__c(Entity__c = entityId, Contact__c = contactMap.get(newVal), Role__c = roleName, Entity_Role_Status__c = AppConstants.STATUS_ACTIVE);
                     syncRoleData(newRole, currentRecord, m);
                     rolesToInsert.add(newRole);
                 }
@@ -239,11 +239,11 @@ public with sharing class EntityRoleOrchestrator {
             for (Entity_Role__c er : [
                 SELECT Id
                 FROM Entity_Role__c
-                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = :EntityRoleConstants.STATUS_ACTIVE
+                WHERE Entity__c = :entityId AND Role__c IN :roles AND Entity_Role_Status__c = :AppConstants.STATUS_ACTIVE
             ]) {
                 // Safeguard: Do not deactivate if we just reactivated this specific record
                 if (!skipIds.contains(er.Id)) {
-                    er.Entity_Role_Status__c = EntityRoleConstants.STATUS_INACTIVE;
+                    er.Entity_Role_Status__c = AppConstants.STATUS_INACTIVE;
                     toDeactivate.add(er);
                 }
             }
