@@ -1,6 +1,6 @@
 {
   "trailingComma": "none",
-  "printWidth": 280,
+  "printWidth": 340,
   "tabWidth": 4,
   "plugins": [
     "prettier-plugin-apex",
