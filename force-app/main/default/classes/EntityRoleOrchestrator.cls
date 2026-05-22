@@ -113,6 +113,10 @@ public with sharing class EntityRoleOrchestrator {
                     Decimal currentPct = (Decimal) safeGet(currentRecord, ownershipFieldAPI, roleName);
                     String currentState = (String) safeGet(currentRecord, stateFieldAPI, roleName);
 
+                    // MOVE THIS UP: Get the existing role before the optimization check
+                    String activeRoleKey = String.valueOf(entityId) + roleName;
+                    Entity_Role__c existingRole = activeRolesMap.get(activeRoleKey);
+
                     // PERFORMANCE OPTIMIZATION: Check prior record to see if fields actually changed
                     if (priorRecord != null) {
                         String priorNameVal = (String) safeGet(priorRecord, entityFieldAPI, roleName);
@@ -120,12 +124,12 @@ public with sharing class EntityRoleOrchestrator {
                         String priorState = (String) safeGet(priorRecord, stateFieldAPI, roleName);
 
                         if (currentNameVal == priorNameVal && currentPct == priorPct && currentState == priorState) {
-                            continue; // Skip processing this mapping if nothing changed
+                            // CRITICAL FIX: Only skip if nothing changed AND (the role actually exists OR the name is blank)
+                            if (existingRole != null || String.isBlank(currentNameVal)) {
+                                continue; 
+                            }
                         }
                     }
-
-                    String activeRoleKey = String.valueOf(entityId) + roleName;
-                    Entity_Role__c existingRole = activeRolesMap.get(activeRoleKey);
 
                     // HANDLE BLANK FIELDS: If name is cleared, deactivate the existing role
                     if (String.isBlank(currentNameVal)) {
