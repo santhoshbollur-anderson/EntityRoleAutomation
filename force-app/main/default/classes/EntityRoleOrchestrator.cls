@@ -3,7 +3,7 @@
  * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records
  * by reactivating historical records instead of inserting new ones.
  * @author            : Santhosh Bollur (Anderson SSC)
- * @last modified on  : 05-27-2026
+ * @last modified on  : 05-28-2026
  **/
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
@@ -23,7 +23,8 @@ public with sharing class EntityRoleOrchestrator {
 
     /**
      * @description Retrieves and caches Entity Role Mappings for reuse across transactions
-     * @return Map of Role Name to Entity_Role_Mapping__mdt
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @return Map<String, Entity_Role_Mapping__mdt>
      **/
     private static Map<String, Entity_Role_Mapping__mdt> getMappings() {
         if (cachedMappings == null) {
@@ -39,7 +40,9 @@ public with sharing class EntityRoleOrchestrator {
     }
 
     /**
-     * @description Main invocable method that processes Entity requests to create, update, or deactivate Entity Roles.
+     * @description Main entry point for processing Entity Role logic. Handles creation, update, and deactivation of roles based on changes to Entity records.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param requests
      **/
     @InvocableMethod(label='Execute Entity Role Logic' category='Entities')
     public static void processRoles(List<EntityRequest> requests) {
@@ -126,7 +129,7 @@ public with sharing class EntityRoleOrchestrator {
                         if (currentNameVal == priorNameVal && currentPct == priorPct && currentState == priorState) {
                             // CRITICAL FIX: Only skip if nothing changed AND (the role actually exists OR the name is blank)
                             if (existingRole != null || String.isBlank(currentNameVal)) {
-                                continue; 
+                                continue;
                             }
                         }
                     }
@@ -194,6 +197,13 @@ public with sharing class EntityRoleOrchestrator {
         }
     }
 
+    /**
+     * @description Tags roles for replacement by adding them to a map of Entity Id to Role Names. This is used to determine which roles need to be deactivated and potentially reinserted.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param replaceMap
+     * @param entityId
+     * @param roleName
+     **/
     private static void markRoleForReplacement(Map<Id, Set<String>> replaceMap, Id entityId, String roleName) {
         if (!replaceMap.containsKey(entityId)) {
             replaceMap.put(entityId, new Set<String>());
@@ -201,6 +211,14 @@ public with sharing class EntityRoleOrchestrator {
         replaceMap.get(entityId).add(roleName);
     }
 
+    /**
+     * @description This method creates new Entity Role records based on the provided requests and mappings, but only for the specific roles that were flagged for replacement. It uses the contactMap to link to existing or newly created contacts. This selective approach prevents unnecessary inserts and respects the back-and-forth reactivation logic.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param requests
+     * @param mappings
+     * @param contactMap
+     * @param rolesToReplaceByEntity
+     **/
     private static void createNewRolesSelective(List<EntityRequest> requests, List<Entity_Role_Mapping__mdt> mappings, Map<String, Id> contactMap, Map<Id, Set<String>> rolesToReplaceByEntity) {
         List<Entity_Role__c> rolesToInsert = new List<Entity_Role__c>();
 
@@ -234,6 +252,12 @@ public with sharing class EntityRoleOrchestrator {
         }
     }
 
+    /**
+     * @description This method deactivates specific Entity Role records based on the provided map of Entity Id to Role Names. It ensures that only the roles that were flagged for replacement are deactivated, and it skips any records that were just reactivated in the current transaction to prevent flipping them back to Inactive.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param entityToRoles
+     * @param skipIds
+     **/
     private static void deactivateSpecificRoles(Map<Id, Set<String>> entityToRoles, Set<Id> skipIds) {
         List<Entity_Role__c> toDeactivate = new List<Entity_Role__c>();
         Set<Id> entityIds = entityToRoles.keySet();
@@ -258,6 +282,15 @@ public with sharing class EntityRoleOrchestrator {
         }
     }
 
+    /**
+     * @description This method synchronizes the ownership percentage and state of residence fields on an Entity Role record. It returns true if any changes were made, which indicates that the record needs to be updated. This is used in both the update scenario for existing roles and the creation scenario for new roles to ensure data consistency.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param er
+     * @param currentName
+     * @param newPct
+     * @param newState
+     * @return Boolean
+     **/
     private static Boolean syncRoleData(Entity_Role__c er, String currentName, Decimal newPct, String newState) {
         Boolean changed = false;
 
@@ -272,6 +305,14 @@ public with sharing class EntityRoleOrchestrator {
         return changed;
     }
 
+    /**
+     * @description This method performs an account-scoped search for Contacts based on the provided names and account IDs. If a Contact with the same name exists under the specified Account(s), it will be returned. If not, a new Contact will be created under the appropriate Account based on the name-to-Account mapping. This ensures that Contacts are always associated with the correct Account context, which is critical for accurate role assignments and prevents cross-account mismatches.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param names
+     * @param accountIds
+     * @param nameToAccountIdMap
+     * @return Map<String, Id>
+     **/
     private static Map<String, Id> findOrCreateContactsScoped(Set<String> names, Set<Id> accountIds, Map<String, Id> nameToAccountIdMap) {
         Map<String, Id> contactMap = new Map<String, Id>();
 
@@ -285,21 +326,6 @@ public with sharing class EntityRoleOrchestrator {
         if (remainingNames.isEmpty()) {
             return contactMap;
         }
-
-        // NOTE: Removed org-wide fallback search. Only account-scoped lookups are allowed.
-        // The following org-wide contact search was intentionally commented out to ensure
-        // contacts are only matched/created scoped to the provided Account(s).
-        /*
-        for (Contact con : [SELECT Id, Name FROM Contact WHERE Name IN :remainingNames WITH SECURITY_ENFORCED]) {
-            contactMap.put(con.Name, con.Id);
-        }
-
-        remainingNames.removeAll(contactMap.keySet());
-
-        if (remainingNames.isEmpty()) {
-            return contactMap;
-        }
-        */
 
         List<Contact> newContacts = new List<Contact>();
 
@@ -323,6 +349,12 @@ public with sharing class EntityRoleOrchestrator {
         return contactMap;
     }
 
+    /**
+     * @description This method retrieves Entity Role records for the specified entity IDs.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param entityIds
+     * @return List<Entity_Role__c>
+     **/
     private static List<Entity_Role__c> getEntityRolesInternal(Set<Id> entityIds) {
         Set<String> fieldsToQuery = new Set<String>{ 'Entity__c', 'Role__c', 'Contact__r.Name', 'Entity_Role_Status__c' };
         for (Schema.FieldSetMember field : SObjectType.Entity_Role__c.FieldSets.Entity_Role_Details.getFields()) {
@@ -332,6 +364,12 @@ public with sharing class EntityRoleOrchestrator {
         return Database.query(query);
     }
 
+    /**
+     * @description  Parses a full name into a Contact record with FirstName and LastName. If only one name is provided, it is treated as the LastName. This method assumes that the full name is in the format "FirstName LastName" but can handle single names as well. It also trims any extra whitespace to ensure clean data. This is used when creating new Contact records based on the names provided in the Entity Role mappings.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param fullName
+     * @return Contact
+     **/
     private static Contact parseName(String fullName) {
         fullName = fullName.trim();
         List<String> parts = fullName.split(' ');
@@ -343,9 +381,13 @@ public with sharing class EntityRoleOrchestrator {
     }
 
     /**
-     * @description Safely retrieves field values from an SObject. Prevents generic SObjectExceptions
-     * from failing the transaction silently if a Custom Metadata API Name is incorrect.
-     */
+     * @description This method safely retrieves a field value from an SObject record based on the provided field API name. It includes error handling to catch cases where the field API name is invalid or does not exist on the object, and it throws a custom exception with a clear message to aid in debugging configuration issues in the Custom Metadata. This ensures that any misconfigurations are surfaced immediately and can be addressed by the administrator.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @param record
+     * @param fieldApiName
+     * @param roleName
+     * @return Object
+     **/
     private static Object safeGet(SObject record, String fieldApiName, String roleName) {
         if (record == null || String.isBlank(fieldApiName))
             return null;
