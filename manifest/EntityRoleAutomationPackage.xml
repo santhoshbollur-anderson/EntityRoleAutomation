@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
 	<types>
+        <members>Entity_Role__c.Entity_Role_Status__c</members>
+        <name>CustomField</name>
+    </types>
+	<types>
 		<members>EntityRoleOrchestrator</members>
 		<members>EntityRoleOrchestratorTest</members>
 		<members>AppConstants</members>
@@ -11,6 +15,10 @@
 		<members>Entities__c.Require_100_Percent_Ownership_If_Filled</members>
 		<name>ValidationRule</name>
 	</types>
+	<types>
+        <members>Entity_Role__c.Entity_Role_Details</members>
+        <name>FieldSet</name>
+    </types>
 	<types>
 		<members>Entity_Role_Mapping.Director_1</members>
 		<members>Entity_Role_Mapping.Director_2</members>

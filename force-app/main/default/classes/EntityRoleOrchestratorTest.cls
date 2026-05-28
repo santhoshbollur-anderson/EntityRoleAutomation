@@ -8,7 +8,11 @@
  **/
 @IsTest
 private class EntityRoleOrchestratorTest {
-    
+    /**
+     * @description      : Test setup method to create common test data used across multiple test methods, such as an existing contact for matching logic.
+     *                    This method runs once before all test methods in this class to optimize
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @TestSetup
     static void setupData() {
         // Create a test contact to test "Existing Contact" matching logic
@@ -16,6 +20,12 @@ private class EntityRoleOrchestratorTest {
         insert existingCon;
     }
 
+    /**
+     * @description     * Validates that when the Manager_1__c field on an LLC entity is updated to match an existing contact's name, the system correctly identifies the contact and creates an active Entity Role without creating a duplicate contact.
+     *                    This test covers the scenario of updating an existing manager to another existing contact and ensures proper role assignment.
+     *                    It also indirectly tests the SOQL optimization by ensuring that only one query is made for contact matching.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testLLCManagerChange() {
         Id llcRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Limited_Liability_Company_LLC')?.getRecordTypeId();
@@ -48,6 +58,10 @@ private class EntityRoleOrchestratorTest {
         System.assert(roles.size() > 0, 'An active Entity Role should have been created');
     }
 
+    /**
+     * @description    * Validates that when the President__c field on a Corporation entity is populated with a name that does not match any existing contact, the system creates a new contact and assigns the correct active Entity Role.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testNewContactCreation() {
         Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
@@ -71,6 +85,10 @@ private class EntityRoleOrchestratorTest {
         System.assertEquals(1, newCons.size(), 'A new contact should have been created');
     }
 
+    /**
+     * @description   * Validates that when the Limited_Partner_1__c field on a Limited Partnership entity is updated to a new partner name, the system deactivates the old partner's Entity Role and creates a new active Entity Role for the new partner. This test ensures that partner changes are handled correctly and that old roles are properly inactivated.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testLPPartnerChange() {
         Id lpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Limited_Partnership_LP')?.getRecordTypeId();
@@ -103,8 +121,10 @@ private class EntityRoleOrchestratorTest {
         System.assertEquals(1, oldRoles.size(), 'The old role record should exist');
     }
 
-    // --- NEW TESTS TO INCREASE COVERAGE ---
-
+    /**
+     * @description  * Validates that if a role occupant's name is changed back to a previous value, the system reactivates the existing Entity Role instead of creating a duplicate. This test ensures that the logic for reactivating roles works correctly and prevents unnecessary role records from being created.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testEmptyAndNullRequests() {
         Test.startTest();
@@ -112,10 +132,14 @@ private class EntityRoleOrchestratorTest {
         EntityRoleOrchestrator.processRoles(null);
         EntityRoleOrchestrator.processRoles(new List<EntityRoleOrchestrator.EntityRequest>());
         Test.stopTest();
-        
+
         System.assert(true, 'Method should safely return without throwing exceptions for null or empty inputs.');
     }
 
+    /**
+     * @description * Validates that when a role occupant's name is blanked out (set to null or empty), the system correctly deactivates the associated Entity Role. This test ensures that the logic for handling blank names works as intended and that roles are not left active when they should be deactivated.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testRoleDeactivationOnBlankName() {
         Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
@@ -131,7 +155,7 @@ private class EntityRoleOrchestratorTest {
 
         // Update the entity to blank out the name
         Entities__c updatedEntity = testEntity.clone(true, true, true, true);
-        updatedEntity.President__c = null; 
+        updatedEntity.President__c = null;
 
         EntityRoleOrchestrator.EntityRequest req2 = new EntityRoleOrchestrator.EntityRequest();
         req2.currentRecord = updatedEntity;
@@ -145,6 +169,10 @@ private class EntityRoleOrchestratorTest {
         System.assert(inactiveRoles.size() > 0, 'The role should have been marked as Inactive when the name was blanked out.');
     }
 
+    /**
+     * @description * Validates that when a role occupant's name is changed back to a previous value, the system reactivates the existing Entity Role instead of creating a duplicate. This test ensures that the logic for reactivating roles works correctly and prevents unnecessary role records from being created.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testBackAndForthReactivation() {
         Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
@@ -187,10 +215,14 @@ private class EntityRoleOrchestratorTest {
         System.assert(foundAlice, 'Alice should have been reactivated as an Active role instead of creating a duplicate.');
     }
 
+    /**
+     * @description * Validates that the name parsing logic works when only a single name (no space) is provided, ensuring that the system can handle mononymous names and does
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testSingleNameParsing() {
         Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
-        
+
         Entities__c testEntity = new Entities__c(Name = 'Test Corp', RecordTypeId = corpRtId, President__c = 'Madonna', Primary_Client__c = createTestAccount());
         insert testEntity;
 
@@ -206,21 +238,16 @@ private class EntityRoleOrchestratorTest {
         System.assertEquals(1, singleNameCons.size(), 'A contact should be created successfully using just the Last Name.');
         System.assertEquals(null, singleNameCons[0].FirstName, 'First Name should be null when only one name is provided.');
     }
-    
+
+    /**
+     * @description Validates that processRoles handles DML exceptions gracefully and throws the custom EntityRoleException when required fields are missing.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testProcessRolesDmlException() {
-        // STRATEGY: Pass an uninserted Entities__c record. 
-        // The orchestrator will attempt to insert an Entity_Role__c with a null Entity__c lookup ID.
-        // This forces a DmlException for a missing required field.
-        
         Id corpRtId = Schema.SObjectType.Entities__c.getRecordTypeInfosByDeveloperName().get('Corporation')?.getRecordTypeId();
-        
-        // Note: We are NOT inserting this record, so its Id is null
-        Entities__c uninsertedEntity = new Entities__c(
-            Name = 'Uninserted Test Corp', 
-            RecordTypeId = corpRtId, 
-            President__c = 'Error Trigger Person'
-        );
+
+        Entities__c uninsertedEntity = new Entities__c(Name = 'Uninserted Test Corp', RecordTypeId = corpRtId, President__c = 'Error Trigger Person');
 
         EntityRoleOrchestrator.EntityRequest req = new EntityRoleOrchestrator.EntityRequest();
         req.currentRecord = uninsertedEntity;
@@ -233,17 +260,17 @@ private class EntityRoleOrchestratorTest {
         } catch (EntityRoleOrchestrator.EntityRoleException e) {
             // Assert that the catch block successfully caught the DML error and threw the custom Exception
             System.assertNotEquals(null, e.getMessage(), 'Exception message should be populated');
-            // Depending on the exact AppConstants string, it will likely format the REQUIRED FIELD message here
         }
         Test.stopTest();
     }
 
+    /**
+     * @description Validates that processRoles handles unexpected exceptions gracefully and throws the custom EntityRoleException with a generic error message when a NullPointerException occurs.
+     * This is tested by passing a null currentRecord, which will cause a NullPointerException when the code tries to access its Id. The test ensures that the generic catch block is executed and that an EntityRoleException is thrown with an appropriate message.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     **/
     @IsTest
     static void testProcessRolesGenericException() {
-        // STRATEGY: Pass a completely null currentRecord.
-        // The code `Id entityId = req.currentRecord.Id;` will throw a NullPointerException,
-        // which gets caught by the catch block to test the generic fallback logic.
-        
         EntityRoleOrchestrator.EntityRequest req = new EntityRoleOrchestrator.EntityRequest();
         req.currentRecord = null; // Deliberately set to null
 
@@ -257,7 +284,11 @@ private class EntityRoleOrchestratorTest {
         Test.stopTest();
     }
 
-    // Helper method to create test account
+    /**
+     * @description Helper method to create a test account for associating with contacts and entities in test methods. This ensures that we have a valid AccountId to use for contact creation and entity association, which is required for the Entity Role logic to function properly during tests.
+     * @author  Santhosh Bollur (Anderson SSC) | 05-28-2026
+     * @return Id
+     **/
     private static Id createTestAccount() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
