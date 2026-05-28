@@ -7,6 +7,11 @@
 		<name>ApexClass</name>
 	</types>
 	<types>
+		<members>Entities__c.Require_100_Percent_Member_Ownership</members>
+		<members>Entities__c.Require_100_Percent_Ownership_If_Filled</members>
+		<name>ValidationRule</name>
+	</types>
+	<types>
 		<members>Entity_Role_Mapping.Director_1</members>
 		<members>Entity_Role_Mapping.Director_2</members>
 		<members>Entity_Role_Mapping.Director_3</members>

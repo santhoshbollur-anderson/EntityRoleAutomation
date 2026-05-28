@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_100_Percent_Ownership_If_Filled</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+  OR(
+    NOT(ISBLANK(Ownership__c)),
+    NOT(ISBLANK(Ownership1__c)),
+    NOT(ISBLANK(Ownership2__c)),
+    NOT(ISBLANK(Ownership3__c)),
+    NOT(ISBLANK(Ownership4__c))
+  ),
+  (
+    BLANKVALUE(Ownership__c, 0) + 
+    BLANKVALUE(Ownership1__c, 0) + 
+    BLANKVALUE(Ownership2__c, 0) + 
+    BLANKVALUE(Ownership3__c, 0) + 
+    BLANKVALUE(Ownership4__c, 0)
+  ) &lt;&gt; 100
+)</errorConditionFormula>
+    <errorMessage>The total ownership of individual members must equal exactly 100%. Please review and adjust the ownership percentage fields.</errorMessage>
+</ValidationRule>

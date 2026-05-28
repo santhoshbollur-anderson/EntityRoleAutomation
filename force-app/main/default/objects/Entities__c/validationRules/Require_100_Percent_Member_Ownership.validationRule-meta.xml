@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_100_Percent_Member_Ownership</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+  /* Check if at least one field has a value */
+  OR(
+    NOT(ISBLANK(Member_One_Ownership_Percentage__c)),
+    NOT(ISBLANK(Member_Two_Ownership_Percentage__c)),
+    NOT(ISBLANK(Member_3_Ownership__c)),
+    NOT(ISBLANK(Member_4_Ownership__c))
+  ),
+  
+  /* Check if the sum is NOT equal to 100% (1.0) */
+  ROUND(
+    BLANKVALUE(Member_One_Ownership_Percentage__c, 0) + 
+    BLANKVALUE(Member_Two_Ownership_Percentage__c, 0) + 
+    BLANKVALUE(Member_3_Ownership__c, 0) + 
+    BLANKVALUE(Member_4_Ownership__c, 0)
+  , 2) &lt;&gt; 1
+)</errorConditionFormula>
+    <errorMessage>The total ownership of Entity members must equal exactly 100%. Please review and adjust the member ownership percentage fields.</errorMessage>
+</ValidationRule>
