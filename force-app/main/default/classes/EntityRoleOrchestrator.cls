@@ -3,7 +3,7 @@
  * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records
  * by reactivating historical records instead of inserting new ones.
  * @author            : Santhosh Bollur (Anderson SSC)
- * @last modified on  : 05-15-2026
+ * @last modified on  : 05-27-2026
  **/
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
@@ -286,6 +286,10 @@ public with sharing class EntityRoleOrchestrator {
             return contactMap;
         }
 
+        // NOTE: Removed org-wide fallback search. Only account-scoped lookups are allowed.
+        // The following org-wide contact search was intentionally commented out to ensure
+        // contacts are only matched/created scoped to the provided Account(s).
+        /*
         for (Contact con : [SELECT Id, Name FROM Contact WHERE Name IN :remainingNames WITH SECURITY_ENFORCED]) {
             contactMap.put(con.Name, con.Id);
         }
@@ -295,6 +299,7 @@ public with sharing class EntityRoleOrchestrator {
         if (remainingNames.isEmpty()) {
             return contactMap;
         }
+        */
 
         List<Contact> newContacts = new List<Contact>();
 
