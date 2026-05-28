@@ -3,6 +3,7 @@
 	<types>
 		<members>EntityRoleOrchestrator</members>
 		<members>EntityRoleOrchestratorTest</members>
+		<members>AppConstants</members>
 		<name>ApexClass</name>
 	</types>
 	<types>
