@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Batch_Admin_Emails</fullName>
+        <categories>Entity Role Automation</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Batch_Admin_Emails</shortDescription>
+        <value>santhosh.bollur@andersonadvisors.com</value>
+    </labels>
+    <labels>
+        <fullName>Batch_Process_Month</fullName>
+        <categories>Entity Role Automation</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Batch_Process_Month</shortDescription>
+        <value>4</value>
+    </labels>
+    <labels>
+        <fullName>Batch_Process_Year</fullName>
+        <categories>Entity Role Automation</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Batch_Process_Year</shortDescription>
+        <value>2026</value>
+    </labels>
+</CustomLabels>

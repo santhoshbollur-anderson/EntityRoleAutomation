@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>EntityReprocessingBatch</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>Batch_Admin_Emails</members>
+        <members>Batch_Process_Month</members>
+        <members>Batch_Process_Year</members>
+        <name>CustomLabel</name>
+    </types>
+    <version>66.0</version>
+</Package>

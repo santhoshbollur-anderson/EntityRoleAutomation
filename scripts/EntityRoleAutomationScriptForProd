@@ -1,0 +1,51 @@
+// Query Entity records created in April 2026
+List<Entities__c> aprilEntities = [
+    SELECT Id, Name 
+    FROM Entities__c 
+    WHERE CALENDAR_MONTH(CreatedDate) = 4 
+    AND CALENDAR_YEAR(CreatedDate) = 2026
+    // LIMIT 10  // ⚠️ Uncomment this limit for your first test run!
+];
+
+if (!aprilEntities.isEmpty()) {
+    // Database.update with 'false' allows partial success (valid records save, invalid ones fail)
+    Database.SaveResult[] results = Database.update(aprilEntities, false);
+    
+    // Lists to hold the IDs
+    List<Id> successfulIds = new List<Id>();
+    List<Id> failedIds = new List<Id>();
+
+    // Loop through the results using an index to match the result to the original record
+    for (Integer i = 0; i < results.size(); i++) {
+        Database.SaveResult sr = results[i];
+        Entities__c currentEntity = aprilEntities[i]; 
+        
+        if (sr.isSuccess()) {
+            // Add to success list
+            successfulIds.add(currentEntity.Id);
+        } else {
+            // Add to failed list
+            failedIds.add(currentEntity.Id);
+            
+            // Loop through the errors and print them with the ID
+            for (Database.Error err : sr.getErrors()) {
+                System.debug('🚨 FAILED Entity ID: ' + currentEntity.Id + 
+                             ' | Error Message: ' + err.getMessage());
+            }
+        }
+    }
+    
+    // Print the final summary and the exact IDs
+    System.debug('======================================');
+    System.debug('✅ Total Succeeded: ' + successfulIds.size());
+    System.debug('✅ Successful Entity IDs: \n' + String.join(successfulIds, '\n'));
+    
+    System.debug('--------------------------------------');
+    
+    System.debug('❌ Total Failed: ' + failedIds.size());
+    System.debug('❌ Failed Entity IDs: \n' + String.join(failedIds, '\n'));
+    System.debug('======================================');
+    
+} else {
+    System.debug('No records found for April.');
+}
