@@ -5,7 +5,7 @@
     <assignments>
         <name>Set_Status_To_Inactive</name>
         <label>Set Status To Inactive</label>
-        <locationX>156</locationX>
+        <locationX>138</locationX>
         <locationY>458</locationY>
         <assignmentItems>
             <assignToReference>Loop_Through_Active_Roles.Entity_Role_Status__c</assignToReference>
@@ -28,11 +28,8 @@
     <decisions>
         <name>Check_If_Other_Roles_Found</name>
         <label>Check If Other Roles Found</label>
-        <locationX>176</locationX>
+        <locationX>314</locationX>
         <locationY>242</locationY>
-        <defaultConnector>
-            <targetReference>Update_All_Roles</targetReference>
-        </defaultConnector>
         <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
         <rules>
             <name>Other_Roles_Exist</name>
@@ -57,7 +54,7 @@
     <loops>
         <name>Loop_Through_Active_Roles</name>
         <label>Loop Through Active Roles</label>
-        <locationX>68</locationX>
+        <locationX>50</locationX>
         <locationY>350</locationY>
         <collectionReference>Get_Other_Active_Roles</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -90,7 +87,7 @@
     <recordLookups>
         <name>Get_Other_Active_Roles</name>
         <label>Get Other Active Roles</label>
-        <locationX>176</locationX>
+        <locationX>314</locationX>
         <locationY>134</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -132,12 +129,12 @@
     <recordUpdates>
         <name>Update_All_Roles</name>
         <label>Update All Roles</label>
-        <locationX>176</locationX>
-        <locationY>734</locationY>
+        <locationX>50</locationX>
+        <locationY>650</locationY>
         <inputReference>varEntityRoleRecords</inputReference>
     </recordUpdates>
     <start>
-        <locationX>50</locationX>
+        <locationX>188</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Get_Other_Active_Roles</targetReference>
