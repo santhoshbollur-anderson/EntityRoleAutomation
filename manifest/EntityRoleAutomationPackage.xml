@@ -13,6 +13,7 @@
 	<types>
 		<members>Entities__c.Require_100_Percent_Member_Ownership</members>
 		<members>Entities__c.Require_100_Percent_Ownership_If_Filled</members>
+		<members>Entity_Role__c.Enforce_Same_Client_For_Entity_Contact</members>
 		<name>ValidationRule</name>
 	</types>
 	<types>

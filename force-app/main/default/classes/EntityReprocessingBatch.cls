@@ -20,7 +20,24 @@ public class EntityReprocessingBatch implements Database.Batchable<sObject>, Dat
 
     // 1. START: Query using dynamic Custom Labels instead of hardcoded dates
     public Database.QueryLocator start(Database.BatchableContext bc) {
-        String query = 'SELECT Id, Name FROM Entities__c ' + 'WHERE CALENDAR_MONTH(CreatedDate) = :processMonth ' + 'AND CALENDAR_YEAR(CreatedDate) = :processYear';
+        String query =
+            'SELECT Id, Name FROM Entities__c ' +
+            'WHERE CALENDAR_MONTH(CreatedDate) = :processMonth ' +
+            'AND CALENDAR_YEAR(CreatedDate) = :processYear ' +
+            'AND Status__c != \'Inactive\' ' +
+            'AND Origin__c != \'Client Formed\' ' +
+            'AND (Director_1__c != NULL OR Director_2__c != NULL OR Director_3__c != NULL OR ' +
+            'Director_4__c != NULL OR Director_5__c != NULL OR Director_6__c != NULL OR ' +
+            'Limited_Partner_1__c != NULL OR Limited_Partner_2__c != NULL OR ' +
+            'Limited_Partner_3__c != NULL OR Limited_Partner_4__c != NULL OR ' +
+            'Manager_1__c != NULL OR Manager_2__c != NULL OR Manager_3__c != NULL OR ' +
+            'Manager_4__c != NULL OR Manager_5__c != NULL OR ' +
+            'Member_1__c != NULL OR Member_2__c != NULL OR Member_3__c != NULL OR ' +
+            'Member_4__c != NULL OR Member_5__c != NULL OR ' +
+            'President__c != NULL OR Secretary__c != NULL OR Treasurer__c != NULL OR ' +
+            'Vice_President__c != NULL OR ' +
+            'Share_Holder_1__c != NULL OR Share_Holder_2__c != NULL OR ' +
+            'Share_Holder_3__c != NULL OR Share_Holder_4__c != NULL)';
         return Database.getQueryLocator(query);
     }
 
