@@ -68,6 +68,8 @@
     </types>
 	<types>
 		<members>Entity_After_Save_Orchestrator</members>
+		<members>Deactivate_Other_Entity_Roles</members>
+        <members>Entity_After_Save_Orchestrator</members>
 		<name>Flow</name>
 	</types>
 	<types>
