@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enforce_Same_Client_For_Entity_Contact</fullName>
+    <active>true</active>
+    <description>Ensures that when an Entity and a Contact are both selected, the Entity&apos;s Primary Client matches the Contact&apos;s Account. This prevents users from accidentally linking records across different clients.</description>
+    <errorConditionFormula>AND(
+    NOT(ISBLANK(Entity__c)),
+    NOT(ISBLANK(Contact__c)),
+    Entity__r.Primary_Client__c &lt;&gt; Contact__r.AccountId
+)</errorConditionFormula>
+    <errorDisplayField>Contact__c</errorDisplayField>
+    <errorMessage>The selected Entity and Contact must belong to the same Client.</errorMessage>
+</ValidationRule>
