@@ -58,31 +58,11 @@
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>
-    <actionCalls>
-        <name>Sync_Role_To_Entity</name>
-        <label>Sync Role To Entity</label>
-        <locationX>50</locationX>
-        <locationY>539</locationY>
-        <actionName>EntityRoleReverseSync</actionName>
-        <actionType>apex</actionType>
-        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
-        <inputParameters>
-            <name>entityRoleId</name>
-            <value>
-                <elementReference>$Record.Id</elementReference>
-            </value>
-        </inputParameters>
-        <nameSegment>EntityRoleReverseSync</nameSegment>
-        <versionSegment>1</versionSegment>
-    </actionCalls>
     <subflows>
         <name>Call_Deactivate_Subflow</name>
         <label>Call Deactivate Subflow</label>
         <locationX>50</locationX>
         <locationY>431</locationY>
-        <connector>
-            <targetReference>Sync_Role_To_Entity</targetReference>
-        </connector>
         <flowName>Deactivate_Other_Entity_Roles</flowName>
         <inputAssignments>
             <name>varCurrentRecordId</name>
