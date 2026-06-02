@@ -69,7 +69,9 @@
 	<types>
 		<members>Entity_After_Save_Orchestrator</members>
 		<members>Deactivate_Other_Entity_Roles</members>
-        <members>Entity_After_Save_Orchestrator</members>
+		<members>Entity_Role_Master_Flow</members>
+		<members>Article_Quality_Publish_Master</members>
+		<members>Publish_Knowledge_Article_Subflow</members>
 		<name>Flow</name>
 	</types>
 	<types>

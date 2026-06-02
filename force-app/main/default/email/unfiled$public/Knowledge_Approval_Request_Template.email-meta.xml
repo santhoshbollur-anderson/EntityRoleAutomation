@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <description>Used for automated email notifications sent to designated approvers when a Knowledge Article is submitted for review. Contains the article title and merge fields to streamline the approval process.</description>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <name>Knowledge Approval Request Template</name>
+    <style>none</style>
+    <subject>Knowledge Article Pending Approval – {!Knowledge__kav.Title}</subject>
+    <textOnly>Knowledge Approval Request
+
+Hello {!User.FirstName},
+
+A Knowledge Article has been submitted and is awaiting your review and approval.
+
+Title:  {!Knowledge__kav.Title}
+Article #:  {!Knowledge__kav.ArticleNumber}
+Submitted By:  {!User.FirstName} {!User.LastName}
+Comments:  {!ApprovalRequest.Comments}
+
+Please review the article details and take the appropriate action via the button below.
+
+Review &amp; Approve Article
+
+Thanks,
+The Anderson Team
+
+© 2026 Anderson Business Advisors. All rights reserved.
+
+This is an automated internal approval notification.</textOnly>
+    <type>custom</type>
+    <uiType>Aloha</uiType>
+</EmailTemplate>

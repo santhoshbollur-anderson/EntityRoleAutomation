@@ -24,4 +24,28 @@
         <shortDescription>Batch_Process_Year</shortDescription>
         <value>2026</value>
     </labels>
+    <labels>
+        <fullName>Knowledge_article_rejected_error_message</fullName>
+        <categories>Knowledge Article</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Knowledge article rejected error message</shortDescription>
+        <value>Please provide a Rejection Comment so the author knows what to fix.</value>
+    </labels>
+    <labels>
+        <fullName>Org_Base_URL</fullName>
+        <categories>Org Base URL</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Org_Base_URL</shortDescription>
+        <value>https://andersonadvisors--octopus.sandbox.my.salesforce.com</value>
+    </labels>
+    <labels>
+        <fullName>Org_Lightning_Domain</fullName>
+        <categories>Org Lightning Domain</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Org_Lightning_Domain</shortDescription>
+        <value>https://andersonadvisors--octopus.sandbox.lightning.force.com</value>
+    </labels>
 </CustomLabels>

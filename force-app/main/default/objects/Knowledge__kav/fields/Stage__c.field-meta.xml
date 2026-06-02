@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Stage__c</fullName>
+    <description>Tracks the current state of a Knowledge Article within the custom approval lifecycle. This field is updated automatically by Approval Processes and Flows to manage article visibility and workflow transitions</description>
+    <inlineHelpText>Indicates where this article is in the review process. Articles must reach the &apos;Approved&apos; stage before they can be published to the Help Center or internal channels.</inlineHelpText>
+    <label>Approval Stage</label>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Approved</fullName>
+                <default>false</default>
+                <label>Approved</label>
+            </value>
+            <value>
+                <fullName>Draft</fullName>
+                <default>true</default>
+                <label>Draft</label>
+            </value>
+            <value>
+                <fullName>In-Review</fullName>
+                <default>false</default>
+                <label>In-Review</label>
+            </value>
+            <value>
+                <fullName>Rejected</fullName>
+                <default>false</default>
+                <label>Rejected</label>
+            </value>
+            <value>
+                <fullName>Recalled</fullName>
+                <default>false</default>
+                <label>Recalled</label>
+            </value>
+            <value>
+                <fullName>Published</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Published</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

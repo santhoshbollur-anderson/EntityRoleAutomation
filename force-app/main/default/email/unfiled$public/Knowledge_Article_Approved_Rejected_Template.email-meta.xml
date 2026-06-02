@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <description>Notification template used in the Knowledge approval process to inform authors when an article has been approved or rejected. Includes merge fields for the article title and current stage.</description>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <name>Knowledge Article Approved/Rejected Template</name>
+    <style>none</style>
+    <subject>Knowledge Article {!Knowledge__kav.Stage__c} – {!Knowledge__kav.Title}</subject>
+    <textOnly>Knowledge Article Status Update
+
+Hello {!User.FirstName},
+
+The following Knowledge Article has been updated to the status: {!Knowledge__kav.Stage__c}.
+
+Article Title:  {!Knowledge__kav.Title}
+Article #:  {!Knowledge__kav.ArticleNumber}
+Current Stage:  {!Knowledge__kav.Stage__c}
+Approver Notes:  {!ApprovalRequest.Comments}
+
+You can view the full history and details of this article by clicking the button below:
+
+View Knowledge Article
+
+Thanks,
+The Anderson Team
+
+© 2026 Anderson Business Advisors. All rights reserved.
+
+Internal Knowledge Management Notification</textOnly>
+    <type>custom</type>
+    <uiType>Aloha</uiType>
+</EmailTemplate>
