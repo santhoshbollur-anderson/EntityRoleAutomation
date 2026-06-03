@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
         <name>Publish_Article</name>
@@ -7,6 +7,9 @@
         <locationY>458</locationY>
         <actionName>publishKnowledgeArticles</actionName>
         <actionType>publishKnowledgeArticles</actionType>
+        <connector>
+            <targetReference>Get_Custom_Notification_Type</targetReference>
+        </connector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>articleVersionIdList</name>
@@ -24,8 +27,81 @@
         <nameSegment>publishKnowledgeArticles</nameSegment>
         <offset>0</offset>
     </actionCalls>
+    <actionCalls>
+        <name>Send_Custom_Notification</name>
+        <label>Send Custom Notification</label>
+        <locationX>50</locationX>
+        <locationY>1898</locationY>
+        <actionName>customNotificationAction</actionName>
+        <actionType>customNotificationAction</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>customNotifTypeId</name>
+            <value>
+                <elementReference>Get_Custom_Notification_Type.Id</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>recipientIds</name>
+            <value>
+                <elementReference>RecipientIds</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>title</name>
+            <value>
+                <elementReference>NotificationTitle</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>body</name>
+            <value>
+                <elementReference>NotificationBody</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>targetId</name>
+            <value>
+                <elementReference>Get_Knowledge_Article_Version.KnowledgeArticleId</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>customNotificationAction</nameSegment>
+        <offset>0</offset>
+    </actionCalls>
     <apiVersion>60.0</apiVersion>
     <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <name>Assign_LastModifiedBy</name>
+        <label>Assign LastModifiedBy</label>
+        <locationX>50</locationX>
+        <locationY>1790</locationY>
+        <assignmentItems>
+            <assignToReference>RecipientIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Get_Knowledge_Article_Version.LastModifiedById</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Send_Custom_Notification</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_PermSetId</name>
+        <label>Assign PermSetId</label>
+        <locationX>138</locationX>
+        <locationY>998</locationY>
+        <assignmentItems>
+            <assignToReference>PermSetIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_SetupEntityAccess.ParentId</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_SetupEntityAccess</targetReference>
+        </connector>
+    </assignments>
     <assignments>
         <name>Assign_to_Collection</name>
         <label>Assign to Collection</label>
@@ -42,6 +118,47 @@
             <targetReference>Publish_Article</targetReference>
         </connector>
     </assignments>
+    <assignments>
+        <name>Assign_UserId</name>
+        <label>Assign UserId</label>
+        <locationX>138</locationX>
+        <locationY>1514</locationY>
+        <assignmentItems>
+            <assignToReference>RecipientIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_PermSetAssignments.AssigneeId</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_PermSetAssignments</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>Check_If_User_Active</name>
+        <label>Check If User Active</label>
+        <locationX>270</locationX>
+        <locationY>1406</locationY>
+        <defaultConnector>
+            <targetReference>Loop_PermSetAssignments</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Inactive</defaultConnectorLabel>
+        <rules>
+            <name>Active_User</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Loop_PermSetAssignments.Assignee.IsActive</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_UserId</targetReference>
+            </connector>
+            <label>Active User</label>
+        </rules>
+    </decisions>
     <decisions>
         <name>Check_Status</name>
         <label>Check Status</label>
@@ -67,6 +184,34 @@
     <environments>Default</environments>
     <interviewLabel>Publish Knowledge Article Subflow {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Publish Knowledge Article Subflow</label>
+    <loops>
+        <name>Loop_PermSetAssignments</name>
+        <label>Loop PermSetAssignments</label>
+        <locationX>50</locationX>
+        <locationY>1298</locationY>
+        <collectionReference>Get_PermSetAssignments</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Check_If_User_Active</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Assign_LastModifiedBy</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <name>Loop_SetupEntityAccess</name>
+        <label>Loop SetupEntityAccess</label>
+        <locationX>50</locationX>
+        <locationY>890</locationY>
+        <collectionReference>Get_Setup_Entity_Access</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Assign_PermSetId</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_PermSetAssignments</targetReference>
+        </noMoreValuesConnector>
+    </loops>
     <processMetadataValues>
         <name>BuilderType</name>
         <value>
@@ -81,13 +226,76 @@
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
     <recordLookups>
+        <name>Get_Author_User</name>
+        <label>Get Author User</label>
+        <locationX>182</locationX>
+        <locationY>200</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Check_Status</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Knowledge_Article_Version.CreatedById</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>User</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Custom_Notification_Type</name>
+        <label>Get Custom Notification Type</label>
+        <locationX>50</locationX>
+        <locationY>566</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Custom_Permission</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Salesforce_Team</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomNotificationType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Custom_Permission</name>
+        <label>Get Custom Permission</label>
+        <locationX>50</locationX>
+        <locationY>674</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Setup_Entity_Access</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Manage_Knowledge_RT_Reviewers</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomPermission</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
         <name>Get_Knowledge_Article_Version</name>
         <label>Get Knowledge Article Version</label>
         <locationX>182</locationX>
         <locationY>134</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>Check_Status</targetReference>
+            <targetReference>Get_Author_User</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
@@ -101,6 +309,48 @@
         <object>Knowledge__kav</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
+    <recordLookups>
+        <name>Get_PermSetAssignments</name>
+        <label>Get PermSetAssignments</label>
+        <locationX>50</locationX>
+        <locationY>1190</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_PermSetAssignments</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>PermissionSetId</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>PermSetIds</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>PermissionSetAssignment</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Setup_Entity_Access</name>
+        <label>Get Setup Entity Access</label>
+        <locationX>50</locationX>
+        <locationY>782</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_SetupEntityAccess</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>SetupEntityId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Custom_Permission.Id</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>SetupEntityAccess</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <start>
         <locationX>56</locationX>
         <locationY>0</locationY>
@@ -109,6 +359,15 @@
         </connector>
     </start>
     <status>Active</status>
+    <textTemplates>
+        <name>NotificationBody</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+     <text>The Knowledge Article "{!Get_Knowledge_Article_Version.Title}" ({!Get_Knowledge_Article_Version.RecordType.Name}), originally created by {!Get_Author_User.Name} on {!Get_Knowledge_Article_Version.CreatedDate}, has just been published successfully.</text> </textTemplates>
+    <textTemplates>
+        <name>NotificationTitle</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Article Published: {!Get_Knowledge_Article_Version.Title}</text>
+    </textTemplates>
     <variables>
         <name>ArticleVersionIdList</name>
         <dataType>String</dataType>
@@ -121,6 +380,20 @@
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>PermSetIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>RecipientIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
         <isOutput>false</isOutput>
     </variables>
 </Flow>

@@ -71,11 +71,6 @@
         <members>Knowledge__kav.View_Article__c</members>
         <name>CustomField</name>
     </types>
-    <types>
-        <members>Knowledge_Approval_Request_Template</members>
-        <members>Knowledge_Article_Approved_Rejected_Template</members>
-        <name>EmailTemplate</name>
-    </types>
   <!--  <types>
         <members>SK__Knowledge_Dashboard</members>
         <members>SK__Sales_Rep_Knowledge_Dashboard</members>
