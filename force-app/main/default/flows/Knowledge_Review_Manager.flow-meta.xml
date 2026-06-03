@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://sforce.com">
+    <apiVersion>61.0</apiVersion>
+    <assignments>
+        <name>Assign_False_Status</name>
+        <label>Assign False Status</label>
+        <locationX>314</locationX>
+        <locationY>458</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Knowledge_Article.In_Review__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Article_To_Draft</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_True_Status</name>
+        <label>Assign True Status</label>
+        <locationX>50</locationX>
+        <locationY>458</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Knowledge_Article.In_Review__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Article_To_Review</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>Check_Current_Review_State</name>
+        <label>Check Current Review State</label>
+        <locationX>182</locationX>
+        <locationY>242</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Is_Draft_Needs_Submission</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Knowledge_Article.In_Review__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Submit_Confirmation_Screen</targetReference>
+            </connector>
+            <label>Is Draft (Needs Submission)</label>
+        </rules>
+        <rules>
+            <name>Is_Locked_Needs_Recall</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Knowledge_Article.In_Review__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Recall_Confirmation_Screen</targetReference>
+            </connector>
+            <label>Is Locked (Needs Recall)</label>
+        </rules>
+    </decisions>
+    <description>Toggles the In_Review__c status checkbox on Lightning Knowledge articles to seamlessly handle review lock submission and draft recall actions.</description>
+    <interviewLabel>Knowledge Review Manager {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Knowledge Review Manager</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+    <recordLookups>
+        <name>Get_Knowledge_Article</name>
+        <label>Get Knowledge Article</label>
+        <locationX>182</locationX>
+        <locationY>134</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Check_Current_Review_State</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Knowledge__kav</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Update_Article_To_Draft</name>
+        <label>Update Article To Draft</label>
+        <locationX>314</locationX>
+        <locationY>566</locationY>
+        <inputReference>Get_Knowledge_Article</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Article_To_Review</name>
+        <label>Update Article To Review</label>
+        <locationX>50</locationX>
+        <locationY>566</locationY>
+        <inputReference>Get_Knowledge_Article</inputReference>
+    </recordUpdates>
+    <screens>
+        <name>Recall_Confirmation_Screen</name>
+        <label>Recall Confirmation Screen</label>
+        <locationX>314</locationX>
+        <locationY>350</locationY>
+        <allowBack>true</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Assign_False_Status</targetReference>
+        </connector>
+        <fields>
+            <name>Txt_Recall_Message</name>
+            <fieldText>&lt;p&gt;This article is currently locked for review. Would you like to recall it back to Draft status to make further modifications?&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Submit_Confirmation_Screen</name>
+        <label>Submit Confirmation Screen</label>
+        <locationX>50</locationX>
+        <locationY>350</locationY>
+        <allowBack>true</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Assign_True_Status</targetReference>
+        </connector>
+        <fields>
+            <name>Txt_Submit_Message</name>
+            <fieldText>&lt;p&gt;Are you sure you want to submit this article for review? This action will temporarily lock the record to ensure data integrity during evaluation.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Knowledge_Article</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <description>The context ID of the Salesforce Knowledge article record passed into the flow by the quick action runner context.</description>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>
