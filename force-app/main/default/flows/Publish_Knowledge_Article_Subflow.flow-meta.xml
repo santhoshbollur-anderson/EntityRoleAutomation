@@ -4,7 +4,7 @@
         <name>Publish_Article</name>
         <label>Publish Article</label>
         <locationX>50</locationX>
-        <locationY>458</locationY>
+        <locationY>566</locationY>
         <actionName>publishKnowledgeArticles</actionName>
         <actionType>publishKnowledgeArticles</actionType>
         <connector>
@@ -31,7 +31,7 @@
         <name>Send_Custom_Notification</name>
         <label>Send Custom Notification</label>
         <locationX>50</locationX>
-        <locationY>1898</locationY>
+        <locationY>1922</locationY>
         <actionName>customNotificationAction</actionName>
         <actionType>customNotificationAction</actionType>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
@@ -74,7 +74,7 @@
         <name>Assign_LastModifiedBy</name>
         <label>Assign LastModifiedBy</label>
         <locationX>50</locationX>
-        <locationY>1790</locationY>
+        <locationY>1814</locationY>
         <assignmentItems>
             <assignToReference>RecipientIds</assignToReference>
             <operator>Add</operator>
@@ -87,19 +87,19 @@
         </connector>
     </assignments>
     <assignments>
-        <name>Assign_PermSetId</name>
-        <label>Assign PermSetId</label>
+        <name>Assign_Recipient_Id</name>
+        <label>Assign Recipient Id</label>
         <locationX>138</locationX>
-        <locationY>998</locationY>
+        <locationY>1622</locationY>
         <assignmentItems>
-            <assignToReference>PermSetIds</assignToReference>
+            <assignToReference>RecipientIds</assignToReference>
             <operator>Add</operator>
             <value>
-                <elementReference>Loop_SetupEntityAccess.ParentId</elementReference>
+                <elementReference>Loop_Active_Users.Id</elementReference>
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Loop_SetupEntityAccess</targetReference>
+            <targetReference>Loop_Active_Users</targetReference>
         </connector>
     </assignments>
     <assignments>
@@ -115,48 +115,48 @@
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Publish_Article</targetReference>
+            <targetReference>Update_Article_In_Review_False</targetReference>
         </connector>
     </assignments>
     <assignments>
-        <name>Assign_UserId</name>
-        <label>Assign UserId</label>
+        <name>Assign_User_Ids</name>
+        <label>Assign User Ids</label>
         <locationX>138</locationX>
-        <locationY>1514</locationY>
+        <locationY>1214</locationY>
         <assignmentItems>
-            <assignToReference>RecipientIds</assignToReference>
+            <assignToReference>QueueUserIds</assignToReference>
             <operator>Add</operator>
             <value>
-                <elementReference>Loop_PermSetAssignments.AssigneeId</elementReference>
+                <elementReference>Loop_Queue_Members.UserOrGroupId</elementReference>
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Loop_PermSetAssignments</targetReference>
+            <targetReference>Loop_Queue_Members</targetReference>
         </connector>
     </assignments>
     <decisions>
-        <name>Check_If_User_Active</name>
-        <label>Check If User Active</label>
+        <name>Check_If_User</name>
+        <label>Check If User</label>
         <locationX>270</locationX>
-        <locationY>1406</locationY>
+        <locationY>1106</locationY>
         <defaultConnector>
-            <targetReference>Loop_PermSetAssignments</targetReference>
+            <targetReference>Loop_Queue_Members</targetReference>
         </defaultConnector>
-        <defaultConnectorLabel>Inactive</defaultConnectorLabel>
+        <defaultConnectorLabel>Not A User</defaultConnectorLabel>
         <rules>
-            <name>Active_User</name>
+            <name>Is_User_Record</name>
             <conditionLogic>and</conditionLogic>
             <conditions>
-                <leftValueReference>Loop_PermSetAssignments.Assignee.IsActive</leftValueReference>
-                <operator>EqualTo</operator>
+                <leftValueReference>Loop_Queue_Members.UserOrGroupId</leftValueReference>
+                <operator>StartsWith</operator>
                 <rightValue>
-                    <booleanValue>true</booleanValue>
+                    <stringValue>005</stringValue>
                 </rightValue>
             </conditions>
             <connector>
-                <targetReference>Assign_UserId</targetReference>
+                <targetReference>Assign_User_Ids</targetReference>
             </connector>
-            <label>Active User</label>
+            <label>Is User Record</label>
         </rules>
     </decisions>
     <decisions>
@@ -185,31 +185,31 @@
     <interviewLabel>Publish Knowledge Article Subflow {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Publish Knowledge Article Subflow</label>
     <loops>
-        <name>Loop_PermSetAssignments</name>
-        <label>Loop PermSetAssignments</label>
+        <name>Loop_Active_Users</name>
+        <label>Loop Active Users</label>
         <locationX>50</locationX>
-        <locationY>1298</locationY>
-        <collectionReference>Get_PermSetAssignments</collectionReference>
+        <locationY>1514</locationY>
+        <collectionReference>Get_Active_Users</collectionReference>
         <iterationOrder>Asc</iterationOrder>
         <nextValueConnector>
-            <targetReference>Check_If_User_Active</targetReference>
+            <targetReference>Assign_Recipient_Id</targetReference>
         </nextValueConnector>
         <noMoreValuesConnector>
             <targetReference>Assign_LastModifiedBy</targetReference>
         </noMoreValuesConnector>
     </loops>
     <loops>
-        <name>Loop_SetupEntityAccess</name>
-        <label>Loop SetupEntityAccess</label>
+        <name>Loop_Queue_Members</name>
+        <label>Loop Queue Members</label>
         <locationX>50</locationX>
-        <locationY>890</locationY>
-        <collectionReference>Get_Setup_Entity_Access</collectionReference>
+        <locationY>998</locationY>
+        <collectionReference>Get_Queue_Members</collectionReference>
         <iterationOrder>Asc</iterationOrder>
         <nextValueConnector>
-            <targetReference>Assign_PermSetId</targetReference>
+            <targetReference>Check_If_User</targetReference>
         </nextValueConnector>
         <noMoreValuesConnector>
-            <targetReference>Get_PermSetAssignments</targetReference>
+            <targetReference>Get_Active_Users</targetReference>
         </noMoreValuesConnector>
     </loops>
     <processMetadataValues>
@@ -225,6 +225,34 @@
         </value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Active_Users</name>
+        <label>Get Active Users</label>
+        <locationX>50</locationX>
+        <locationY>1406</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_Active_Users</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>QueueUserIds</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>IsActive</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>User</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <recordLookups>
         <name>Get_Author_User</name>
         <label>Get Author User</label>
@@ -250,10 +278,10 @@
         <name>Get_Custom_Notification_Type</name>
         <label>Get Custom Notification Type</label>
         <locationX>50</locationX>
-        <locationY>566</locationY>
+        <locationY>674</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>Get_Custom_Permission</targetReference>
+            <targetReference>Get_Queue</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
@@ -265,27 +293,6 @@
         </filters>
         <getFirstRecordOnly>true</getFirstRecordOnly>
         <object>CustomNotificationType</object>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
-    </recordLookups>
-    <recordLookups>
-        <name>Get_Custom_Permission</name>
-        <label>Get Custom Permission</label>
-        <locationX>50</locationX>
-        <locationY>674</locationY>
-        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
-        <connector>
-            <targetReference>Get_Setup_Entity_Access</targetReference>
-        </connector>
-        <filterLogic>and</filterLogic>
-        <filters>
-            <field>DeveloperName</field>
-            <operator>EqualTo</operator>
-            <value>
-                <stringValue>Manage_Knowledge_RT_Reviewers</stringValue>
-            </value>
-        </filters>
-        <getFirstRecordOnly>true</getFirstRecordOnly>
-        <object>CustomPermission</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordLookups>
@@ -310,47 +317,78 @@
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordLookups>
-        <name>Get_PermSetAssignments</name>
-        <label>Get PermSetAssignments</label>
-        <locationX>50</locationX>
-        <locationY>1190</locationY>
-        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
-        <connector>
-            <targetReference>Loop_PermSetAssignments</targetReference>
-        </connector>
-        <filterLogic>and</filterLogic>
-        <filters>
-            <field>PermissionSetId</field>
-            <operator>In</operator>
-            <value>
-                <elementReference>PermSetIds</elementReference>
-            </value>
-        </filters>
-        <getFirstRecordOnly>false</getFirstRecordOnly>
-        <object>PermissionSetAssignment</object>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
-    </recordLookups>
-    <recordLookups>
-        <name>Get_Setup_Entity_Access</name>
-        <label>Get Setup Entity Access</label>
+        <name>Get_Queue</name>
+        <label>Get Queue</label>
         <locationX>50</locationX>
         <locationY>782</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>Loop_SetupEntityAccess</targetReference>
+            <targetReference>Get_Queue_Members</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
-            <field>SetupEntityId</field>
+            <field>Type</field>
             <operator>EqualTo</operator>
             <value>
-                <elementReference>Get_Custom_Permission.Id</elementReference>
+                <stringValue>Queue</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Knowledge_Coaches_Reviewers</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Group</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Queue_Members</name>
+        <label>Get Queue Members</label>
+        <locationX>50</locationX>
+        <locationY>890</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_Queue_Members</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>GroupId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Queue.Id</elementReference>
             </value>
         </filters>
         <getFirstRecordOnly>false</getFirstRecordOnly>
-        <object>SetupEntityAccess</object>
+        <object>GroupMember</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
+    <recordUpdates>
+        <name>Update_Article_In_Review_False</name>
+        <label>Update Article In Review False</label>
+        <locationX>50</locationX>
+        <locationY>458</locationY>
+        <connector>
+            <targetReference>Publish_Article</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>KnowledgeArticleVersionId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>In_Review__c</field>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </inputAssignments>
+        <object>Knowledge__kav</object>
+    </recordUpdates>
     <start>
         <locationX>56</locationX>
         <locationY>0</locationY>
@@ -362,7 +400,8 @@
     <textTemplates>
         <name>NotificationBody</name>
         <isViewedAsPlainText>true</isViewedAsPlainText>
-     <text>The Knowledge Article "{!Get_Knowledge_Article_Version.Title}" ({!Get_Knowledge_Article_Version.RecordType.Name}), originally created by {!Get_Author_User.Name} on {!Get_Knowledge_Article_Version.CreatedDate}, has just been published successfully.</text> </textTemplates>
+        <text>The Knowledge Article "{!Get_Knowledge_Article_Version.Title}" ({!Get_Knowledge_Article_Version.RecordType.Name}), originally created by {!Get_Author_User.Name} on {!Get_Knowledge_Article_Version.CreatedDate}, has just been published successfully.</text>
+    </textTemplates>
     <textTemplates>
         <name>NotificationTitle</name>
         <isViewedAsPlainText>true</isViewedAsPlainText>
@@ -383,7 +422,7 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>PermSetIds</name>
+        <name>QueueUserIds</name>
         <dataType>String</dataType>
         <isCollection>true</isCollection>
         <isInput>false</isInput>

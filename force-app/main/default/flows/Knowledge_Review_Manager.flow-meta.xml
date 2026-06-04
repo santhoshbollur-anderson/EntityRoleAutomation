@@ -1,6 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://sforce.com">
     <apiVersion>61.0</apiVersion>
+    <actionCalls>
+        <name>Send_Custom_Notification</name>
+        <label>Send Custom Notification</label>
+        <locationX>50</locationX>
+        <locationY>1754</locationY>
+        <actionName>customNotificationAction</actionName>
+        <actionType>customNotificationAction</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>customNotifTypeId</name>
+            <value>
+                <elementReference>Get_Custom_Notification.Id</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>recipientIds</name>
+            <value>
+                <elementReference>varRecipientIds</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>title</name>
+            <value>
+                <elementReference>fxSelectedTitle</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>body</name>
+            <value>
+                <elementReference>fxSelectedBody</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>targetId</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>customNotificationAction</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
     <assignments>
         <name>Assign_False_Status</name>
         <label>Assign False Status</label>
@@ -13,8 +54,31 @@
                 <booleanValue>false</booleanValue>
             </value>
         </assignmentItems>
+        <assignmentItems>
+            <assignToReference>varNotificationActionType</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Recall</stringValue>
+            </value>
+        </assignmentItems>
         <connector>
             <targetReference>Update_Article_To_Draft</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_Recipient_Ids</name>
+        <label>Assign Recipient Ids</label>
+        <locationX>270</locationX>
+        <locationY>1430</locationY>
+        <assignmentItems>
+            <assignToReference>varRecipientIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_Active_Users.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_Active_Users</targetReference>
         </connector>
     </assignments>
     <assignments>
@@ -29,8 +93,31 @@
                 <booleanValue>true</booleanValue>
             </value>
         </assignmentItems>
+        <assignmentItems>
+            <assignToReference>varNotificationActionType</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Submit</stringValue>
+            </value>
+        </assignmentItems>
         <connector>
             <targetReference>Update_Article_To_Review</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_User_Ids</name>
+        <label>Assign User Ids</label>
+        <locationX>270</locationX>
+        <locationY>1106</locationY>
+        <assignmentItems>
+            <assignToReference>varUserIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_Queue_Members.UserOrGroupId</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_Queue_Members</targetReference>
         </connector>
     </assignments>
     <decisions>
@@ -70,9 +157,74 @@
             <label>Is Locked (Needs Recall)</label>
         </rules>
     </decisions>
-    <description>Toggles the In_Review__c status checkbox on Lightning Knowledge articles to seamlessly handle review lock submission and draft recall actions.</description>
+    <decisions>
+        <name>Check_Has_Recipients</name>
+        <label>Check Has Recipients</label>
+        <locationX>182</locationX>
+        <locationY>1538</locationY>
+        <defaultConnectorLabel>No Recipients</defaultConnectorLabel>
+        <rules>
+            <name>Has_Valid_Recipients</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>varRecipientIds</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Custom_Notification</targetReference>
+            </connector>
+            <label>Has Valid Recipients</label>
+        </rules>
+    </decisions>
+    <description>Professional manager for Knowledge Review lifecycle. Toggles review status and sends bell notifications to the Knowledge Reviewers queue.</description>
+    <formulas>
+        <name>fxRecordTypeName</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!Get_Record_Type.Name}), &apos;Knowledge Article&apos;, {!Get_Record_Type.Name})</expression>
+    </formulas>
+    <formulas>
+        <name>fxSelectedBody</name>
+        <dataType>String</dataType>
+        <expression>IF({!varNotificationActionType} == &apos;Submit&apos;, {!ttSubmitBody}, {!ttRecallBody})</expression>
+    </formulas>
+    <formulas>
+        <name>fxSelectedTitle</name>
+        <dataType>String</dataType>
+        <expression>IF({!varNotificationActionType} == &apos;Submit&apos;, &apos;Knowledge Article Submitted for Review&apos;, &apos;Knowledge Article Recalled from Review&apos;)</expression>
+    </formulas>
     <interviewLabel>Knowledge Review Manager {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Knowledge Review Manager</label>
+    <loops>
+        <name>Loop_Active_Users</name>
+        <label>Loop Active Users</label>
+        <locationX>182</locationX>
+        <locationY>1322</locationY>
+        <collectionReference>Get_Active_Users</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Assign_Recipient_Ids</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Check_Has_Recipients</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <name>Loop_Queue_Members</name>
+        <label>Loop Queue Members</label>
+        <locationX>182</locationX>
+        <locationY>998</locationY>
+        <collectionReference>Get_Queue_Members</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Assign_User_Ids</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_Active_Users</targetReference>
+        </noMoreValuesConnector>
+    </loops>
     <processMetadataValues>
         <name>BuilderType</name>
         <value>
@@ -92,6 +244,55 @@
         </value>
     </processMetadataValues>
     <processType>Flow</processType>
+    <recordLookups>
+        <name>Get_Active_Users</name>
+        <label>Get Active Users</label>
+        <locationX>182</locationX>
+        <locationY>1214</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_Active_Users</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>varUserIds</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>IsActive</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>User</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Custom_Notification</name>
+        <label>Get Custom Notification</label>
+        <locationX>50</locationX>
+        <locationY>1646</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Send_Custom_Notification</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Salesforce_Team</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomNotificationType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <recordLookups>
         <name>Get_Knowledge_Article</name>
         <label>Get Knowledge Article</label>
@@ -113,11 +314,84 @@
         <object>Knowledge__kav</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
+    <recordLookups>
+        <name>Get_Queue</name>
+        <label>Get Queue</label>
+        <locationX>182</locationX>
+        <locationY>782</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Queue_Members</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Type</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Queue</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Knowledge_Coaches_Reviewers</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Group</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Queue_Members</name>
+        <label>Get Queue Members</label>
+        <locationX>182</locationX>
+        <locationY>890</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_Queue_Members</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>GroupId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Queue.Id</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>GroupMember</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Record_Type</name>
+        <label>Get Record Type</label>
+        <locationX>182</locationX>
+        <locationY>674</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Queue</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Knowledge_Article.RecordTypeId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>RecordType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <recordUpdates>
         <name>Update_Article_To_Draft</name>
         <label>Update Article To Draft</label>
         <locationX>314</locationX>
         <locationY>566</locationY>
+        <connector>
+            <targetReference>Get_Record_Type</targetReference>
+        </connector>
         <inputReference>Get_Knowledge_Article</inputReference>
     </recordUpdates>
     <recordUpdates>
@@ -125,11 +399,14 @@
         <label>Update Article To Review</label>
         <locationX>50</locationX>
         <locationY>566</locationY>
+        <connector>
+            <targetReference>Get_Record_Type</targetReference>
+        </connector>
         <inputReference>Get_Knowledge_Article</inputReference>
     </recordUpdates>
     <screens>
         <name>Recall_Confirmation_Screen</name>
-        <label>Recall Confirmation Screen</label>
+        <label>Recall to Draft</label>
         <locationX>314</locationX>
         <locationY>350</locationY>
         <allowBack>true</allowBack>
@@ -140,15 +417,16 @@
         </connector>
         <fields>
             <name>Txt_Recall_Message</name>
-            <fieldText>&lt;p&gt;This article is currently locked for review. Would you like to recall it back to Draft status to make further modifications?&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p&gt;This record is currently locked for quality assurance evaluation. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Recalling the article will return it to a Draft state, enabling you to make further modifications as needed. 🔄&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
+        <nextOrFinishButtonLabel>Recall</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>
         <showHeader>true</showHeader>
     </screens>
     <screens>
         <name>Submit_Confirmation_Screen</name>
-        <label>Submit Confirmation Screen</label>
+        <label>Submit for Review</label>
         <locationX>50</locationX>
         <locationY>350</locationY>
         <allowBack>true</allowBack>
@@ -159,9 +437,10 @@
         </connector>
         <fields>
             <name>Txt_Submit_Message</name>
-            <fieldText>&lt;p&gt;Are you sure you want to submit this article for review? This action will temporarily lock the record to ensure data integrity during evaluation.&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p&gt;This article is now prepared for formal assessment. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Submitting it will initiate the review process and temporarily lock the record to maintain data integrity. 📥&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
+        <nextOrFinishButtonLabel>Submit</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>
         <showHeader>true</showHeader>
     </screens>
@@ -173,12 +452,48 @@
         </connector>
     </start>
     <status>Active</status>
+    <textTemplates>
+        <name>ttRecallBody</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Title: {!Get_Knowledge_Article.Title}
+Record Type: {!fxRecordTypeName}
+Recalled By: {!$User.FirstName} {!$User.LastName}
+Time: {!$Flow.CurrentDateTime}</text>
+    </textTemplates>
+    <textTemplates>
+        <name>ttSubmitBody</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Title: {!Get_Knowledge_Article.Title}
+Record Type: {!fxRecordTypeName}
+Submitted By: {!$User.FirstName} {!$User.LastName}
+Time: {!$Flow.CurrentDateTime}</text>
+    </textTemplates>
     <variables>
-        <description>The context ID of the Salesforce Knowledge article record passed into the flow by the quick action runner context.</description>
         <name>recordId</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>varNotificationActionType</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>varRecipientIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>varUserIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
         <isOutput>false</isOutput>
     </variables>
 </Flow>
