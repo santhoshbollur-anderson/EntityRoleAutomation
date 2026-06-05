@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    
+    <types>
+        <members>AppConstants</members>
+        <members>EntityReprocessingBatch</members>
+        <members>EntityReprocessingBatchTest</members>
+        <members>EntityRoleOrchestrator</members>
+        <members>EntityRoleOrchestratorTest</members>
+        <name>ApexClass</name>
+    </types>
+
+    <types>
+        <members>Entity_Role_Mapping__mdt.Entity_Field_API__c</members>
+        <members>Entity_Role_Mapping__mdt.Ownership_Percentage_Field_API_Name__c</members>
+        <members>Entity_Role_Mapping__mdt.Role_Name__c</members>
+        <members>Entity_Role_Mapping__mdt.State_of_Residence_Field_API__c</members>
+        <members>Entity_Role__c.Entity_Role_Status__c</members>
+        <name>CustomField</name>
+    </types>
+
+    <types>
+        <members>Entity_Role_Mapping__mdt</members>
+        <name>CustomObject</name>
+    </types>
+
+    <types>
+        <members>Entity_Role_Mapping.Director_1__c</members>
+        <members>Entity_Role_Mapping.Director_2__c</members>
+        <members>Entity_Role_Mapping.Director_3__c</members>
+        <members>Entity_Role_Mapping.Director_4__c</members>
+        <members>Entity_Role_Mapping.Director_5__c</members>
+        <members>Entity_Role_Mapping.Director_6__c</members>
+        <members>Entity_Role_Mapping.LP_Partner_1__c</members>
+        <members>Entity_Role_Mapping.LP_Partner_2__c</members>
+        <members>Entity_Role_Mapping.LP_Partner_3__c</members>
+        <members>Entity_Role_Mapping.LP_Partner_4__c</members>
+        <members>Entity_Role_Mapping.Manager_1__c</members>
+        <members>Entity_Role_Mapping.Manager_2__c</members>
+        <members>Entity_Role_Mapping.Manager_3__c</members>
+        <members>Entity_Role_Mapping.Manager_4__c</members>
+        <members>Entity_Role_Mapping.Manager_5__c</members>
+        <members>Entity_Role_Mapping.Member_1__c</members>
+        <members>Entity_Role_Mapping.Member_2__c</members>
+        <members>Entity_Role_Mapping.Member_3__c</members>
+        <members>Entity_Role_Mapping.Member_4__c</members>
+        <members>Entity_Role_Mapping.Member_5__c</members>
+        <members>Entity_Role_Mapping.President__c</members>
+        <members>Entity_Role_Mapping.Secretary__c</members>
+        <members>Entity_Role_Mapping.Share_Holder_1__c</members>
+        <members>Entity_Role_Mapping.Share_Holder_2__c</members>
+        <members>Entity_Role_Mapping.Share_Holder_3__c</members>
+        <members>Entity_Role_Mapping.Share_Holder_4__c</members>
+        <members>Entity_Role_Mapping.Treasurer__c</members>
+        <members>Entity_Role_Mapping.Vice_President__c</members>
+        <name>CustomMetadata</name>
+    </types>
+
+    <types>
+        <members>Entity_Role__c.Entity_Role_Details</members>
+        <name>FieldSet</name>
+    </types>
+
+    <types>
+        <members>Knowledge_Record_Page</members>
+        <name>FlexiPage</name>
+    </types>
+
+    <types>
+        <members>Deactivate_Other_Entity_Roles</members>
+        <members>EntityRoleBeforeHelper</members>
+        <members>Entity_After_Save_Orchestrator</members>
+        <members>Entity_Role_Master_Flow</members>
+        <name>Flow</name>
+    </types>
+
+    <types>
+        <members>Knowledge_LSF_Permission_Set</members>
+        <name>PermissionSet</name>
+    </types>
+
+    <types>
+        <members>Entity_Role__c.Enforce_Same_Client_For_Entity_Contact</members>
+        <members>Entity__c.Require_100_Percent_Member_Ownership</members>
+        <members>Entity__c.Require_100_Percent_Ownership_If_Filled</members>
+        <name>ValidationRule</name>
+    </types>
+
+    <version>59.0</version>
+</Package>
