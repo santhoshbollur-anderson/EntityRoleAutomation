@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>Role_Name__c</field>
-        <value xsi:type="xsd:string">Shareholder 1</value>
+        <value xsi:type="xsd:string">Share Holder 1</value>
     </values>
     <values>
         <field>State_of_Residence_Field_API__c</field>

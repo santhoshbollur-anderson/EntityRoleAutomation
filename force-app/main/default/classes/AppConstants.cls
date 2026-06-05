@@ -4,7 +4,7 @@
  *                      the organization to ensure consistency and maintainability.
  * @author            : Santhosh Bollur (Anderson SSC)
  * @group             : Core
- * @last modified on  : 05-15-2026
+ * @last modified on  : 06-05-2026
  * @last modified by  :  Santhosh Bollur (Anderson SSC)
  **/
 public with sharing class AppConstants {
@@ -53,7 +53,7 @@ public with sharing class AppConstants {
     // ENTITY ROLE AUTOMATION - SPECIFIC ERRORS
     // ========================================
     public static final String ERROR_ENTITY_ROLE_AUTOMATION = 'Entity Role Automation Failed: ';
-    public static final String ERROR_INVALID_PICKLIST = 'One of the State values entered is not valid for the "State of Residence" picklist. Please ensure you are using standard State abbreviations or names defined in Salesforce.';
+    public static final String ERROR_INVALID_PICKLIST = 'An invalid value was provided for a restricted picklist field. Please ensure all values match the standard options defined in Salesforce.';
     public static final String ERROR_REQUIRED_FIELD = 'A required field is missing. Please check that all Name and Role fields are populated.';
 
     // ========================================
