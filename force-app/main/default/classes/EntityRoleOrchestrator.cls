@@ -1,9 +1,9 @@
 /**
  * @description       : Orchestrates the creation, update, and deactivation of Entity Role records based on
  * Entity record changes. Supports "Back-and-Forth" logic to prevent duplicate records
- * by reactivating historical records instead of inserting new ones.
+ * by reactivating historical records instead of inserting new ones. Features fuzzy contact matching.
  * @author            : Santhosh Bollur (Anderson SSC)
- * @last modified on  : 05-28-2026
+ * @last modified on  : 06-05-2026
  **/
 public with sharing class EntityRoleOrchestrator {
     public class EntityRoleException extends Exception {
@@ -316,10 +316,52 @@ public with sharing class EntityRoleOrchestrator {
     private static Map<String, Id> findOrCreateContactsScoped(Set<String> names, Set<Id> accountIds, Map<String, Id> nameToAccountIdMap) {
         Map<String, Id> contactMap = new Map<String, Id>();
 
-        for (Contact con : [SELECT Id, Name FROM Contact WHERE Name IN :names AND AccountId IN :accountIds WITH SECURITY_ENFORCED]) {
-            contactMap.put(con.Name, con.Id);
+        // FETCH ALL POTENTIAL CONTACTS UNDER THE RELEVANT ACCOUNTS FOR IN-MEMORY MATCHING
+        List<Contact> existingAccountContacts = [
+            SELECT Id, Name, FirstName, LastName
+            FROM Contact
+            WHERE AccountId IN :accountIds
+            WITH SECURITY_ENFORCED
+        ];
+
+        // PROCESS EACH NAME REQUESTED FOR FUZZY MATCHING
+        for (String fullName : names) {
+            if (String.isBlank(fullName))
+                continue;
+
+            String cleanName = fullName.trim();
+            Boolean matchFound = false;
+
+            // STEP 1: Try an Exact Match First
+            for (Contact con : existingAccountContacts) {
+                if (con.Name == cleanName) {
+                    contactMap.put(cleanName, con.Id);
+                    matchFound = true;
+                    break;
+                }
+            }
+
+            // STEP 2: Try Fuzzy Match (Ignore middle initial - e.g. "ABX T BGD" -> FirstName "ABX", LastName "BGD")
+            if (!matchFound) {
+                List<String> parts = cleanName.split(' ');
+                if (parts.size() >= 2) {
+                    String fName = parts[0];
+                    String lName = parts[parts.size() - 1]; // Grab the very last word
+
+                    for (Contact con : existingAccountContacts) {
+                        // Match if First Name matches perfectly, and Last Name contains the last word
+                        if (con.FirstName == fName && con.LastName != null && con.LastName.contains(lName)) {
+                            // Map the original requested string to the matching ID
+                            contactMap.put(cleanName, con.Id);
+                            matchFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
+        // FIND OUT WHICH ONES STILL NEED TO BE CREATED
         Set<String> remainingNames = new Set<String>(names);
         remainingNames.removeAll(contactMap.keySet());
 
@@ -330,8 +372,6 @@ public with sharing class EntityRoleOrchestrator {
         List<Contact> newContacts = new List<Contact>();
 
         for (String fullName : remainingNames) {
-            if (String.isBlank(fullName))
-                continue;
             Contact c = parseName(fullName);
             c.AccountId = nameToAccountIdMap.get(fullName);
             c.RecordTypeId = CONTACT_STANDARD_RT_ID;
