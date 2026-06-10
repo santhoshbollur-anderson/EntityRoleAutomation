@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Queue xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Queue for subject matter experts responsible for reviewing, fact-checking, and approving Knowledge Articles prior to publication.</description>
+    <doesIncludeBosses>false</doesIncludeBosses>
+    <doesSendEmailToMembers>false</doesSendEmailToMembers>
+    <name>Knowledge Validators</name>
+    <queueMembers>
+        <users>
+            <user>roberto.flores@andersonadvisors.com</user>
+            <user>santhosh.bollur@andersonadvisors.com</user>
+        </users>
+    </queueMembers>
+    <queueSobject>
+        <sobjectType>KnowledgeArticleVersion</sobjectType>
+    </queueSobject>
+</Queue>

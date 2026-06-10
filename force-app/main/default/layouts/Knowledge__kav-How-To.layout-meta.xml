@@ -35,6 +35,9 @@
             <layoutItems>
                 <field>Resolution__c</field>
             </layoutItems>
+            <layoutItems>
+                <field>Related_Articles__c</field>
+            </layoutItems>
         </layoutColumns>
         <style>OneColumn</style>
     </layoutSections>

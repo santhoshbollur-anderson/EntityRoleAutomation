@@ -12,6 +12,9 @@
             <layoutItems>
                 <field>ValidationStatus</field>
             </layoutItems>
+            <layoutItems>
+                <field>Related_Articles__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -39,9 +42,6 @@
         <layoutColumns>
             <layoutItems>
                 <field>Considerations__c</field>
-            </layoutItems>
-            <layoutItems>
-                <field>Related_Articles__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>This acts as a &quot;feature flag.&quot; If a user has this permission, they see the knowledge recommendation component.</description>
+    <isLicensed>false</isLicensed>
+    <label>Show Knowledge Component</label>
+</CustomPermission>

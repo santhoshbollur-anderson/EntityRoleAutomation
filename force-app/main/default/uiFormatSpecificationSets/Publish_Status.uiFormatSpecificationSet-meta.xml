@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UiFormatSpecificationSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <field>Knowledge__kav.PublishStatus</field>
+    <formatType>ICON</formatType>
+    <masterLabel>Publish Status</masterLabel>
+    <sobjectType>Knowledge__kav</sobjectType>
+    <uiFormatSpecifications>
+        <formatProperties>{&quot;icon&quot;:&quot;neutral_face&quot;,&quot;iconColor&quot;:&quot;orange&quot;}</formatProperties>
+        <formatType>ICON</formatType>
+        <order>1</order>
+        <visibilityRule>
+            <criteria>
+                <leftValue>{!Record.PublishStatus}</leftValue>
+                <operator>EQUAL</operator>
+                <rightValue>Draft</rightValue>
+            </criteria>
+        </visibilityRule>
+    </uiFormatSpecifications>
+    <uiFormatSpecifications>
+        <formatProperties>{&quot;icon&quot;:&quot;big_grin_face&quot;,&quot;iconColor&quot;:&quot;green&quot;}</formatProperties>
+        <formatType>ICON</formatType>
+        <order>2</order>
+        <visibilityRule>
+            <criteria>
+                <leftValue>{!Record.PublishStatus}</leftValue>
+                <operator>EQUAL</operator>
+                <rightValue>Online</rightValue>
+            </criteria>
+        </visibilityRule>
+    </uiFormatSpecifications>
+    <uiFormatSpecifications>
+        <formatProperties>{&quot;icon&quot;:&quot;sad_face&quot;,&quot;iconColor&quot;:&quot;orange&quot;}</formatProperties>
+        <formatType>ICON</formatType>
+        <order>3</order>
+        <visibilityRule>
+            <criteria>
+                <leftValue>{!Record.PublishStatus}</leftValue>
+                <operator>EQUAL</operator>
+                <rightValue>Archived</rightValue>
+            </criteria>
+        </visibilityRule>
+    </uiFormatSpecifications>
+</UiFormatSpecificationSet>

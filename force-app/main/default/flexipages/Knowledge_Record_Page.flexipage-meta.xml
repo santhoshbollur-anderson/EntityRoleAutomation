@@ -65,8 +65,8 @@
                     <name>uiBehavior</name>
                     <value>none</value>
                 </fieldInstanceProperties>
-                <fieldItem>Record.IsLatestVersion</fieldItem>
-                <identifier>RecordIsLatestVersionField</identifier>
+                <fieldItem>Record.VersionNumber</fieldItem>
+                <identifier>RecordVersionNumberField</identifier>
             </fieldInstance>
         </itemInstances>
         <itemInstances>
@@ -75,8 +75,8 @@
                     <name>uiBehavior</name>
                     <value>none</value>
                 </fieldInstanceProperties>
-                <fieldItem>Record.VersionNumber</fieldItem>
-                <identifier>RecordVersionNumberField</identifier>
+                <fieldItem>Record.In_Review__c</fieldItem>
+                <identifier>RecordIn_Review_cField</identifier>
             </fieldInstance>
         </itemInstances>
         <name>Facet-8c589124-cb55-433a-896e-103924212b88</name>
