@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Flow xmlns="http://sforce.com">
-    <apiVersion>61.0</apiVersion>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
         <name>Send_Custom_Notification</name>
         <label>Send Custom Notification</label>
@@ -40,8 +39,9 @@
             </value>
         </inputParameters>
         <nameSegment>customNotificationAction</nameSegment>
-        <versionSegment>1</versionSegment>
     </actionCalls>
+    <apiVersion>61.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
     <assignments>
         <name>Assign_False_Status</name>
         <label>Assign False Status</label>
@@ -419,6 +419,14 @@
             <name>Txt_Recall_Message</name>
             <fieldText>&lt;p&gt;This record is currently locked for quality assurance evaluation. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Recalling the article will return it to a Draft state, enabling you to make further modifications as needed. 🔄&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
+            <styleProperties>
+                <verticalAlignment>
+                    <stringValue>top</stringValue>
+                </verticalAlignment>
+                <width>
+                    <stringValue>12</stringValue>
+                </width>
+            </styleProperties>
         </fields>
         <nextOrFinishButtonLabel>Recall</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>
@@ -439,6 +447,14 @@
             <name>Txt_Submit_Message</name>
             <fieldText>&lt;p&gt;This article is now prepared for formal assessment. &lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Submitting it will initiate the review process and temporarily lock the record to maintain data integrity. 📥&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
+            <styleProperties>
+                <verticalAlignment>
+                    <stringValue>top</stringValue>
+                </verticalAlignment>
+                <width>
+                    <stringValue>12</stringValue>
+                </width>
+            </styleProperties>
         </fields>
         <nextOrFinishButtonLabel>Submit</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>

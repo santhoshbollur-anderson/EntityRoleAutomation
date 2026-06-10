@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Resolution__c</fullName>
+    <inlineHelpText>Provide clear, step-by-step instructions to resolve the issue or fulfill the request. Use numbered lists for sequential steps.</inlineHelpText>
+    <label>Resolution</label>
+    <length>131072</length>
+    <trackHistory>true</trackHistory>
+    <type>Html</type>
+    <visibleLines>25</visibleLines>
+</CustomField>

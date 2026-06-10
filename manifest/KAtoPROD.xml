@@ -38,10 +38,38 @@
 		<members>Knowledge__kav.Manage_Review</members>
 		<name>QuickAction</name>
 	</types>
+    <types>
+        <members>Knowledge__kav.Acronym__c</members>
+        <members>Knowledge__kav.Considerations__c</members>
+        <members>Knowledge__kav.Definition__c</members>
+        <members>Knowledge__kav.Details__c</members>
+        <members>Knowledge__kav.In_Review__c</members>
+        <members>Knowledge__kav.Problem__c</members>
+        <members>Knowledge__kav.Related_Articles__c</members>
+        <members>Knowledge__kav.Resolution__c</members>
+        <members>Knowledge__kav.Stage__c</members>
+        <members>Knowledge__kav.What_Happens_Next__c</members>
+        <name>CustomField</name>
+    </types>
 	<types>
-		<members>*</members>
-		<name>Translations</name>
-	</types>
+        <members>Knowledge__kav.FAQ_Articles</members>
+        <members>Knowledge__kav.Glossary_Articles</members>
+        <members>Knowledge__kav.How_To</members>
+        <members>Knowledge__kav.archived_articles</members>
+        <members>Knowledge__kav.draft_articles</members>
+        <members>Knowledge__kav.published_articles</members>
+        <name>ListView</name>
+    </types>
+	<types>
+        <members>Knowledge__kav.FAQ</members>
+        <members>Knowledge__kav.Glossary</members>
+        <members>Knowledge__kav.How_To</members>
+        <name>RecordType</name>
+    </types>
+	<types>
+        <members>Knowledge__kav.Lock_Review_Records</members>
+        <name>ValidationRule</name>
+    </types>
 	<types>
 		<members>Publish_Status</members>
 		<name>UiFormatSpecificationSet</name>

@@ -12,9 +12,6 @@
             <layoutItems>
                 <field>ValidationStatus</field>
             </layoutItems>
-            <layoutItems>
-                <field>Stage__c</field>
-            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -118,5 +115,8 @@
         <fields>Actor</fields>
         <fields>Comments</fields>
         <relatedList>RelatedProcessHistoryList</relatedList>
+    </relatedLists>
+    <relatedLists>
+        <relatedList>KnowledgeArticleVersionFilesRelatedList</relatedList>
     </relatedLists>
 </Layout>

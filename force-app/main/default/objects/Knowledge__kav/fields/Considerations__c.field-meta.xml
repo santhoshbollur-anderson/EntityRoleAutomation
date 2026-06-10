@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Considerations__c</fullName>
+    <description>Considerations (optional - edge cases or important notes)</description>
+    <inlineHelpText>Detail any edge cases, exceptions, or important warnings agents must be aware of before applying the resolution.</inlineHelpText>
+    <label>Considerations</label>
+    <length>5000</length>
+    <trackHistory>true</trackHistory>
+    <type>Html</type>
+    <visibleLines>10</visibleLines>
+</CustomField>

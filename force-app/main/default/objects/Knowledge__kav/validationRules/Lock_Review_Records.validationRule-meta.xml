@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lock_Review_Records</fullName>
+    <active>true</active>
+    <description>Locks the knowledge article to prevent standard users from making changes or accidental edits while it is in an active review cycle.</description>
+    <errorConditionFormula>AND(
+    In_Review__c,
+    NOT(ISCHANGED(In_Review__c))
+)</errorConditionFormula>
+    <errorMessage>This article is currently locked for review. Only authorized reviewers or system administrators can modify its content during an active review cycle.</errorMessage>
+</ValidationRule>

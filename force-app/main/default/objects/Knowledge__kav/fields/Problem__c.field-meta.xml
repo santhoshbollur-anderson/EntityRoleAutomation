@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Problem__c</fullName>
+    <inlineHelpText>Describe the issue, symptoms, or exact error messages the customer is experiencing. Include common keywords users might search for.</inlineHelpText>
+    <label>Problem</label>
+    <length>5000</length>
+    <trackHistory>true</trackHistory>
+    <type>Html</type>
+    <visibleLines>25</visibleLines>
+</CustomField>

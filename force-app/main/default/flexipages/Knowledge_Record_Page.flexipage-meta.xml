@@ -95,6 +95,27 @@
                             <value>CreateDraftFromOnlineKnowledgeArticleVersion</value>
                         </valueListItems>
                         <valueListItems>
+                            <value>Knowledge__kav.Manage_Review</value>
+                            <visibilityRule>
+                                <booleanFilter>(1 OR 2) AND 3</booleanFilter>
+                                <criteria>
+                                    <leftValue>{!$Permission.CustomPermission.Manage_Knowledge_RT_Reviewers}</leftValue>
+                                    <operator>EQUAL</operator>
+                                    <rightValue>true</rightValue>
+                                </criteria>
+                                <criteria>
+                                    <leftValue>{!Record.In_Review__c}</leftValue>
+                                    <operator>EQUAL</operator>
+                                    <rightValue>false</rightValue>
+                                </criteria>
+                                <criteria>
+                                    <leftValue>{!Record.PublishStatus}</leftValue>
+                                    <operator>EQUAL</operator>
+                                    <rightValue>Draft</rightValue>
+                                </criteria>
+                            </visibilityRule>
+                        </valueListItems>
+                        <valueListItems>
                             <value>ChangeKnowledgeArticleVersionRecordType</value>
                             <visibilityRule>
                                 <booleanFilter>1 AND 2</booleanFilter>
@@ -104,11 +125,14 @@
                                     <rightValue>Draft</rightValue>
                                 </criteria>
                                 <criteria>
-                                    <leftValue>{!$Permission.CustomPermission.Show_Knowledge_Record_Type_Change}</leftValue>
+                                    <leftValue>{!$Permission.CustomPermission.Manage_Knowledge_RT_Reviewers}</leftValue>
                                     <operator>EQUAL</operator>
                                     <rightValue>true</rightValue>
                                 </criteria>
                             </visibilityRule>
+                        </valueListItems>
+                        <valueListItems>
+                            <value>ChangeKnowledgeArticleVersionOwner</value>
                         </valueListItems>
                         <valueListItems>
                             <value>GetArticleSmartLinkUrl</value>
@@ -117,26 +141,13 @@
                             <value>PrintableView</value>
                         </valueListItems>
                         <valueListItems>
-                            <value>SubmitKnowledgeArticleVersionForApproval</value>
-                            <visibilityRule>
-                                <criteria>
-                                    <leftValue>{!Record.PublishStatus}</leftValue>
-                                    <operator>EQUAL</operator>
-                                    <rightValue>Draft</rightValue>
-                                </criteria>
-                            </visibilityRule>
-                        </valueListItems>
-                        <valueListItems>
                             <value>DeleteDraftKnowledgeArticleVersion</value>
-                        </valueListItems>
-                        <valueListItems>
-                            <value>ChangeKnowledgeArticleVersionOwner</value>
                         </valueListItems>
                     </valueList>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
                     <name>numVisibleActions</name>
-                    <value>6</value>
+                    <value>9</value>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
                     <name>primaryField</name>
@@ -148,6 +159,16 @@
                 </componentInstanceProperties>
                 <componentName>record_flexipage:dynamicHighlights</componentName>
                 <identifier>record_flexipage_dynamicHighlights</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>hideHeader</name>
+                    <value>false</value>
+                </componentInstanceProperties>
+                <componentName>force:relatedListQuickLinksContainer</componentName>
+                <identifier>force_relatedListQuickLinksContainer</identifier>
             </componentInstance>
         </itemInstances>
         <mode>Replace</mode>
@@ -194,6 +215,32 @@
         </itemInstances>
         <itemInstances>
             <componentInstance>
+                <componentInstanceProperties>
+                    <name>parentFieldApiName</name>
+                    <value>Knowledge__kav.Id</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>relatedListApiName</name>
+                    <value>AttachedContentDocuments</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>relatedListComponentOverride</name>
+                    <value>NONE</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>rowsToDisplay</name>
+                    <value>10</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>showActionBar</name>
+                    <value>true</value>
+                </componentInstanceProperties>
+                <componentName>force:relatedListSingleContainer</componentName>
+                <identifier>force_relatedListSingleContainer2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
                 <componentName>forceKnowledge:articleFeedbackResponses</componentName>
                 <identifier>forceKnowledge_articleFeedbackResponses</identifier>
             </componentInstance>
@@ -216,11 +263,14 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>forceKnowledge:articleFeedbackSubmission</componentName>
-                <identifier>forceKnowledge_articleFeedbackSubmission</identifier>
+                <componentInstanceProperties>
+                    <name>componentTitle</name>
+                </componentInstanceProperties>
+                <componentName>forceKnowledge:knowledgeMapsNavigator</componentName>
+                <identifier>forceKnowledge_knowledgeMapsNavigator</identifier>
             </componentInstance>
         </itemInstances>
-        <name>Facet-6849f81f-6adc-4c02-a60d-a4728e7b62d5</name>
+        <name>Facet-cbdf7d34-01fe-4e0a-bcfc-ba0371713eea</name>
         <type>Facet</type>
     </flexiPageRegions>
     <flexiPageRegions>
@@ -274,11 +324,11 @@
             <componentInstance>
                 <componentInstanceProperties>
                     <name>body</name>
-                    <value>Facet-6849f81f-6adc-4c02-a60d-a4728e7b62d5</value>
+                    <value>Facet-cbdf7d34-01fe-4e0a-bcfc-ba0371713eea</value>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
                     <name>title</name>
-                    <value>Feedback</value>
+                    <value>Knowledge Maps</value>
                 </componentInstanceProperties>
                 <componentName>flexipage:tab</componentName>
                 <identifier>flexipage_tab</identifier>
@@ -310,14 +360,14 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>forceKnowledge:articleThumbVote</componentName>
-                <identifier>forceKnowledge_articleThumbVote</identifier>
+                <componentName>forceKnowledge:articleDataCategoryViewer</componentName>
+                <identifier>forceKnowledge_articleDataCategoryViewer</identifier>
             </componentInstance>
         </itemInstances>
         <itemInstances>
             <componentInstance>
-                <componentName>forceKnowledge:articleDataCategoryViewer</componentName>
-                <identifier>forceKnowledge_articleDataCategoryViewer</identifier>
+                <componentName>forceKnowledge:articleFeedbackSubmission</componentName>
+                <identifier>forceKnowledge_articleFeedbackSubmission</identifier>
             </componentInstance>
         </itemInstances>
         <itemInstances>
@@ -378,7 +428,7 @@
                 <identifier>aqi_ltng_mng_aqi_ArticleQualityIndex</identifier>
                 <visibilityRule>
                     <criteria>
-                        <leftValue>{!$Permission.CustomPermission.Show_Knowledge_Record_Type_Change}</leftValue>
+                        <leftValue>{!$Permission.CustomPermission.Manage_Knowledge_RT_Reviewers}</leftValue>
                         <operator>EQUAL</operator>
                         <rightValue>true</rightValue>
                     </criteria>
