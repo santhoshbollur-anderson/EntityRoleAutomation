@@ -5,7 +5,7 @@
     <decisions>
         <name>Check_Criteria</name>
         <label>Check Criteria</label>
-        <locationX>176</locationX>
+        <locationX>182</locationX>
         <locationY>323</locationY>
         <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
         <rules>
@@ -48,7 +48,7 @@
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
     <start>
-        <locationX>50</locationX>
+        <locationX>56</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Check_Criteria</targetReference>
@@ -68,6 +68,12 @@
             <name>KnowledgeArticleVersionId</name>
             <value>
                 <elementReference>$Record.aqi_ltng_mng__Knowledge_Article_Version_Id__c</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <name>varRecord_ContentStandardChecklist</name>
+            <value>
+                <elementReference>$Record</elementReference>
             </value>
         </inputAssignments>
     </subflows>

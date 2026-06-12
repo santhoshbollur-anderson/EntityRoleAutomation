@@ -12,9 +12,6 @@
             <layoutItems>
                 <field>ValidationStatus</field>
             </layoutItems>
-            <layoutItems>
-                <field>Related_Articles__c</field>
-            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -38,13 +35,14 @@
             <layoutItems>
                 <field>Details__c</field>
             </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
             <layoutItems>
                 <field>Considerations__c</field>
             </layoutItems>
+            <layoutItems>
+                <field>Related_Articles__c</field>
+            </layoutItems>
         </layoutColumns>
-        <style>TwoColumnsTopToBottom</style>
+        <style>OneColumn</style>
     </layoutSections>
     <layoutSections>
         <customLabel>true</customLabel>
@@ -65,6 +63,23 @@
             </layoutItems>
             <layoutItems>
                 <field>IsVisibleInPkb</field>
+            </layoutItems>
+        </layoutColumns>
+        <style>TwoColumnsTopToBottom</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel>
+        <detailHeading>true</detailHeading>
+        <editHeading>true</editHeading>
+        <label>Review &amp; Validation</label>
+        <layoutColumns>
+            <layoutItems>
+                <field>Reviewed_By__c</field>
+            </layoutItems>
+        </layoutColumns>
+        <layoutColumns>
+            <layoutItems>
+                <field>Validated_By__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>
